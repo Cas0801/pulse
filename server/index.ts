@@ -1,7 +1,11 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from './config';
 import { createPost, loadFeed } from './supabase';
+
+dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const app = express();
 const config = getConfig();

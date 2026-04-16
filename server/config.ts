@@ -1,8 +1,3 @@
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.local' });
-dotenv.config();
-
 const required = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'] as const;
 
 export interface ServerConfig {
