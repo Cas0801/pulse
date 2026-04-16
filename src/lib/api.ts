@@ -22,8 +22,10 @@ async function request<T>(path: string, init?: RequestOptions): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function fetchFeed() {
-  return request<FeedData>('/api/feed');
+export function fetchFeed(accessToken?: string | null) {
+  return request<FeedData>('/api/feed', {
+    accessToken,
+  });
 }
 
 export function createPost(input: CreatePostInput, accessToken?: string | null) {

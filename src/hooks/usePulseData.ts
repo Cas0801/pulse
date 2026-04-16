@@ -11,7 +11,7 @@ export function usePulseData(accessToken?: string | null) {
   async function reload() {
     setIsLoading(true);
     try {
-      const nextFeed = await fetchFeed();
+      const nextFeed = await fetchFeed(accessToken);
       setFeed(nextFeed);
       setError(null);
     } catch (requestError) {
@@ -23,7 +23,7 @@ export function usePulseData(accessToken?: string | null) {
 
   useEffect(() => {
     void reload();
-  }, []);
+  }, [accessToken]);
 
   async function createPost(input: CreatePostInput) {
     setIsSubmitting(true);
