@@ -1,7 +1,7 @@
-import type { CreatePostInput, FeedData, Post, User } from '../src/types';
-import { MOCK_FEED } from '../src/lib/mockData';
-import { getConfig, hasSupabaseConfig } from './config';
-import { formatRelativeTime } from './utils';
+import type { CreatePostInput, FeedData, Post, User } from '../src/types.ts';
+import { MOCK_FEED } from '../src/lib/mockData.ts';
+import { getConfig, hasSupabaseConfig } from './config.ts';
+import { formatRelativeTime } from './utils.ts';
 
 interface SupabaseUserRow {
   id: string;

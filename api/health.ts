@@ -1,4 +1,4 @@
-import { hasSupabaseConfig } from '../server/config';
+import { hasSupabaseConfig } from '../server/config.ts';
 
 export default async function handler(_req: any, res: any) {
   res.status(200).json({

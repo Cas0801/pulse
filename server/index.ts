@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
-import { getConfig, hasSupabaseConfig } from './config';
-import { createPost, loadFeed } from './supabase';
+import { getConfig, hasSupabaseConfig } from './config.ts';
+import { createPost, loadFeed } from './supabase.ts';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
