@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier Prime", "Courier New", Courier, monospace;
+  --font-serif: "Playfair Display", "Georgia", serif;
+  
+  --color-bg: #E4E3E0;
+  --color-ink: #141414;
+  --color-line: #141414;
+  --color-accent: #2A7E19;
+  --color-warning: #B87D00;
+  
+  /* Map Pulse names to theme colors */
+  --color-primary: var(--color-ink);
+  --color-primary-container: #CCC;
+  --color-on-primary: var(--color-bg);
+  
+  --color-surface: var(--color-bg);
+  --color-surface-container: #D9D8D4;
+  --color-surface-low: #E4E3E0;
+  --color-surface-dim: #CCC;
+  
+  --color-on-surface: var(--color-ink);
+  --color-on-surface-variant: rgba(20, 20, 20, 0.6);
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-ink font-sans;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+.col-header {
+  @apply font-serif italic text-[11px] uppercase opacity-50 tracking-wider;
+}
+
+.data-value {
+  @apply font-mono;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
