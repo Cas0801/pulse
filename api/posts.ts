@@ -1,4 +1,4 @@
-import { createPost } from './_lib/supabase.ts';
+import { createPost } from './_lib/supabase';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
