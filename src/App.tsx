@@ -44,11 +44,11 @@ export default function App() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-[#D9D8D4] flex items-center justify-center px-6">
-        <div className="max-w-sm w-full border border-line bg-bg p-6 text-center">
-          <div className="font-mono text-xs opacity-60">AUTH_BOOTSTRAP</div>
-          <h1 className="mt-3 text-2xl font-black uppercase tracking-tighter">Loading Session</h1>
-          <p className="mt-3 text-sm opacity-70">正在校验 Supabase 登录态与用户会话。</p>
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="ios-card max-w-sm w-full rounded-[30px] p-7 text-center">
+          <div className="section-label">Session Sync</div>
+          <h1 className="mt-3 text-2xl font-semibold text-ink">正在连接你的账号</h1>
+          <p className="mt-3 text-sm text-ink/70">正在校验 Supabase 登录态与用户会话。</p>
         </div>
       </div>
     );
@@ -68,37 +68,37 @@ export default function App() {
 
   if (isLoading || !feed) {
     return (
-      <div className="min-h-screen bg-[#D9D8D4] flex items-center justify-center px-6">
-        <div className="max-w-sm w-full border border-line bg-bg p-6 text-center">
-          <div className="font-mono text-xs opacity-60">SYSTEM_BOOTSTRAP</div>
-          <h1 className="mt-3 text-2xl font-black uppercase tracking-tighter">Loading Pulse</h1>
-          <p className="mt-3 text-sm opacity-70">正在初始化前后端链路与云端数据连接。</p>
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="ios-card max-w-sm w-full rounded-[30px] p-7 text-center">
+          <div className="section-label">Cloud Bootstrap</div>
+          <h1 className="mt-3 text-2xl font-semibold text-ink">正在加载 Pulse</h1>
+          <p className="mt-3 text-sm text-ink/70">正在初始化前后端链路与云端数据连接。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex justify-center bg-[#D9D8D4] min-h-screen">
-      <div className="w-full max-w-[430px] bg-bg relative shadow-[0_0_100px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col min-h-screen border-x border-line">
+    <div className="flex justify-center min-h-screen px-3 py-4 sm:px-6 sm:py-6">
+      <div className="ios-shell w-full max-w-[430px] relative overflow-hidden flex flex-col min-h-[100dvh] sm:min-h-[900px] rounded-[36px] border border-white/60">
         {error ? (
-          <div className="border-b border-line bg-[#f2d6d6] px-4 py-3 text-[11px] font-mono text-ink flex items-center justify-between gap-3">
+          <div className="border-b border-line/70 bg-[#fdebeb] px-4 py-3 text-[12px] text-ink flex items-center justify-between gap-3">
             <span>{error}</span>
-            <button className="underline underline-offset-2" onClick={() => void reload()}>
-              RETRY
+            <button className="font-semibold text-accent" onClick={() => void reload()}>
+              重试
             </button>
           </div>
         ) : null}
         {hasSupabaseClientEnv && isAuthenticated ? (
-          <div className="border-b border-line bg-line/[0.05] px-4 py-2 text-[10px] font-mono flex items-center justify-between">
-            <span>{session?.user.email}</span>
-            <button className="underline underline-offset-2" onClick={() => void signOut()}>
-              SIGN_OUT
+          <div className="border-b border-line/70 bg-white/50 px-4 py-2 text-[11px] text-ink/70 flex items-center justify-between backdrop-blur-xl">
+            <span className="truncate">{session?.user.email}</span>
+            <button className="font-semibold text-accent" onClick={() => void signOut()}>
+              退出登录
             </button>
           </div>
         ) : (
-          <div className="border-b border-line bg-line/[0.05] px-4 py-2 text-[10px] font-mono">
-            DEMO_MODE / NO_SUPABASE_AUTH_ENV
+          <div className="border-b border-line/70 bg-white/50 px-4 py-2 text-[11px] text-ink/65 backdrop-blur-xl">
+            演示模式 / 未配置 Supabase Auth
           </div>
         )}
         <AnimatePresence mode="wait">
@@ -143,19 +143,15 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center p-8 text-center"
             >
-              <div className="border-2 border-dashed border-line p-10 mb-6 relative">
-                <div className="absolute top-0 left-0 w-2 h-2 bg-line -translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute top-0 right-0 w-2 h-2 bg-line translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-2 h-2 bg-line -translate-x-1/2 translate-y-1/2"></div>
-                <div className="absolute bottom-0 right-0 w-2 h-2 bg-line translate-x-1/2 translate-y-1/2"></div>
-                <span className="text-6xl grayscale opacity-40">💬</span>
+              <div className="ios-card mb-6 rounded-[28px] px-10 py-12 relative">
+                <span className="text-6xl opacity-60">💬</span>
               </div>
-              <h3 className="text-xl font-black uppercase tracking-tighter mb-2">Message_Hub</h3>
-              <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest">No_Active_Transmissions_Detected</p>
+              <h3 className="text-xl font-semibold mb-2">消息中心</h3>
+              <p className="text-sm text-ink/60">暂时还没有新的对话或通知。</p>
               <div className="mt-8 flex gap-2">
                  <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-line/20"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-line/20"></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-line/60"></div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-line/60"></div>
               </div>
             </motion.div>
           )}

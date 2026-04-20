@@ -35,43 +35,45 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
   }
 
   return (
-    <div className="min-h-screen bg-[#D9D8D4] flex items-center justify-center px-6 py-10">
-      <div className="w-full max-w-[430px] bg-bg border border-line shadow-[0_0_100px_rgba(0,0,0,0.15)]">
-        <div className="border-b border-line px-6 py-5">
-          <div className="font-mono text-[10px] uppercase opacity-60">Pulse / Auth Gateway</div>
-          <h1 className="mt-2 text-3xl font-black uppercase tracking-tighter">Secure Access</h1>
-          <p className="mt-3 text-sm opacity-70">
+    <div className="min-h-screen flex items-center justify-center px-6 py-10">
+      <div className="ios-shell w-full max-w-[430px] rounded-[36px] border border-white/70 overflow-hidden">
+        <div className="px-6 py-6">
+          <div className="section-label">Pulse Account</div>
+          <h1 className="mt-2 text-3xl font-semibold">欢迎回来</h1>
+          <p className="mt-3 text-sm text-ink/70">
             用 Supabase Auth 管理真实身份，写入帖子时走用户级权限而不是假数据。
           </p>
         </div>
 
-        <div className="grid grid-cols-2 border-b border-line bg-line">
+        <div className="px-6 pb-2">
+        <div className="ios-panel grid grid-cols-2 rounded-[22px] p-1">
           <button
-            className={`py-3 font-mono text-[10px] font-bold uppercase ${mode === 'signin' ? 'bg-ink text-bg' : 'bg-bg text-ink'}`}
+            className={`rounded-[18px] py-3 text-sm font-semibold ${mode === 'signin' ? 'bg-[#dcebff] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signin')}
           >
-            Sign In
+            登录
           </button>
           <button
-            className={`py-3 font-mono text-[10px] font-bold uppercase border-l border-line ${mode === 'signup' ? 'bg-ink text-bg' : 'bg-bg text-ink'}`}
+            className={`rounded-[18px] py-3 text-sm font-semibold ${mode === 'signup' ? 'bg-[#dcebff] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signup')}
           >
-            Sign Up
+            注册
           </button>
+        </div>
         </div>
 
         <div className="space-y-4 px-6 py-6">
           {mode === 'signup' ? (
             <>
               <input
-                className="w-full border border-line bg-transparent px-4 py-3 font-mono text-sm outline-none focus:bg-line/[0.04]"
-                placeholder="Name"
+                className="ios-input"
+                placeholder="姓名"
                 value={form.name}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
               />
               <input
-                className="w-full border border-line bg-transparent px-4 py-3 font-mono text-sm outline-none focus:bg-line/[0.04]"
-                placeholder="Username"
+                className="ios-input"
+                placeholder="用户名"
                 value={form.username}
                 onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
               />
@@ -79,34 +81,34 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
           ) : null}
 
           <input
-            className="w-full border border-line bg-transparent px-4 py-3 font-mono text-sm outline-none focus:bg-line/[0.04]"
-            placeholder="Email"
+            className="ios-input"
+            placeholder="邮箱"
             type="email"
             value={form.email}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
           />
           <input
-            className="w-full border border-line bg-transparent px-4 py-3 font-mono text-sm outline-none focus:bg-line/[0.04]"
-            placeholder="Password"
+            className="ios-input"
+            placeholder="密码"
             type="password"
             value={form.password}
             onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
           />
 
           {error ? (
-            <div className="border border-[#c96d6d] bg-[#f4dddd] px-4 py-3 text-sm">{error}</div>
+            <div className="rounded-[18px] border border-[#f3bcbc] bg-[#fff1f1] px-4 py-3 text-sm text-[#9f4141]">{error}</div>
           ) : null}
 
           {message ? (
-            <div className="border border-line bg-line/[0.04] px-4 py-3 text-sm">{message}</div>
+            <div className="rounded-[18px] border border-line bg-white/70 px-4 py-3 text-sm">{message}</div>
           ) : null}
 
           <button
-            className="w-full bg-ink text-bg py-3 font-mono text-xs font-bold uppercase tracking-widest disabled:opacity-50"
+            className="ios-primary-btn w-full"
             disabled={isBusy || !canSubmit}
             onClick={() => void handleSubmit()}
           >
-            {isBusy ? 'Processing...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+            {isBusy ? '处理中...' : mode === 'signin' ? '登录' : '创建账号'}
           </button>
         </div>
       </div>

@@ -236,7 +236,7 @@ export default async function handler(req: any, res: any) {
       author_id: authorId,
       content: content.trim(),
       image_url: typeof image === 'string' && image.trim() ? image.trim() : null,
-      image_urls: type === 'gallery' && typeof image === 'string' && image.trim() ? [image.trim()] : null,
+      image_urls: type === 'gallery' && typeof image === 'string' && image.trim() ? [image.trim()] : [],
       type: type === 'quote' || type === 'gallery' ? type : 'standard',
       visibility,
       location: typeof location === 'string' && location.trim() ? location.trim() : null,

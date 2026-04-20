@@ -48,40 +48,43 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-bg flex flex-col overflow-hidden">
-      <header className="sticky top-0 w-full z-40 bg-bg border-b-2 border-line flex justify-between items-center px-6 py-5">
+    <div className="fixed inset-0 z-[60] bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_52%,#e7f0ff_100%)] flex flex-col overflow-hidden">
+      <header className="sticky top-0 w-full z-40 bg-white/60 backdrop-blur-2xl border-b border-line/70 flex justify-between items-center px-5 py-4">
         <div className="flex items-center gap-4">
-          <button onClick={onClose} className="text-ink hover:bg-ink hover:text-bg transition-all p-1 border border-transparent hover:border-line">
+          <button onClick={onClose} className="ios-pill rounded-full p-2 text-ink hover:text-accent transition-all">
             <X size={20} />
           </button>
-          <div className="font-serif italic text-sm opacity-70">Initialize_New_Packet / Transmission_UI</div>
+          <div>
+            <div className="section-label">New Post</div>
+            <div className="text-sm text-ink/65">分享你的最新灵感</div>
+          </div>
         </div>
         <button
-          className="bg-ink text-bg font-mono text-xs font-bold px-6 py-2 border border-line hover:bg-accent transition-colors disabled:opacity-50"
+          className="ios-primary-btn px-6 py-2.5 text-sm"
           disabled={isSubmitting || content.trim().length < 3}
           onClick={() => void handleSubmit()}
         >
-          {isSubmitting ? 'SENDING...' : 'EXECUTE_CMD'}
+          {isSubmitting ? '发布中...' : '发布'}
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar px-6 pb-24 pt-4 space-y-6">
+      <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 pt-5 space-y-6">
         <section className="relative">
-          <div className="w-full aspect-[4/5] bg-surface-container border border-line overflow-hidden relative">
+          <div className="ios-card w-full aspect-[4/5] overflow-hidden relative rounded-[30px]">
             <img 
               alt="Portrait" 
-              className="w-full h-full object-cover grayscale" 
+              className="w-full h-full object-cover" 
               src={me.avatar} 
               referrerPolicy="no-referrer"
             />
-            <div className="absolute top-4 left-4 font-mono text-[10px] bg-bg/80 border border-line px-2 py-1">
-              IMG_REF: PORTRAIT_01
+            <div className="absolute top-4 left-4 rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-ink/70 backdrop-blur-xl">
+              当前账号头像
             </div>
             <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-              <button className="bg-bg border border-line p-2 text-ink hover:bg-ink hover:text-bg transition-all shadow-sm">
+              <button className="ios-pill rounded-full p-2.5 text-ink hover:text-accent transition-all shadow-sm">
                 <Edit2 size={16} />
               </button>
-              <button className="bg-bg border border-line p-2 text-ink hover:bg-ink hover:text-bg transition-all shadow-sm">
+              <button className="ios-pill rounded-full p-2.5 text-ink hover:text-accent transition-all shadow-sm">
                 <Camera size={16} />
               </button>
             </div>
@@ -89,14 +92,14 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
         </section>
 
         <section className="space-y-4">
-          <div className="bg-bg border border-line p-0 focus-within:ring-2 focus-within:ring-accent/20 transition-all">
-            <div className="bg-line/[0.05] border-b border-line px-3 py-1 flex justify-between">
-              <span className="font-mono text-[9px] font-bold opacity-60">RAW_TEXT_INPUT</span>
-              <Terminal size={10} className="opacity-40" />
+          <div className="ios-card rounded-[28px] p-0 focus-within:ring-2 focus-within:ring-accent/20 transition-all">
+            <div className="px-4 pt-4 flex justify-between">
+              <span className="section-label">内容</span>
+              <Terminal size={12} className="opacity-30" />
             </div>
             <textarea 
-              className="w-full bg-transparent border-none focus:ring-0 text-sm min-h-[120px] p-4 resize-none font-mono placeholder:text-ink/20" 
-              placeholder="Enter_Payload_Documentation..."
+              className="w-full bg-transparent border-none focus:ring-0 text-[15px] min-h-[140px] p-4 resize-none placeholder:text-ink/28 outline-none" 
+              placeholder="这一刻你想分享什么？"
               value={content}
               onChange={(event) => setContent(event.target.value)}
             />
@@ -104,20 +107,20 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
 
           <div className="grid grid-cols-1 gap-3">
             <input
-              className="w-full bg-transparent border border-line px-4 py-3 text-sm font-mono placeholder:text-ink/30 outline-none focus:bg-line/[0.04]"
-              placeholder="Image_URL(optional)"
+              className="ios-input"
+              placeholder="图片链接（可选）"
               value={image}
               onChange={(event) => setImage(event.target.value)}
             />
             <input
-              className="w-full bg-transparent border border-line px-4 py-3 text-sm font-mono placeholder:text-ink/30 outline-none focus:bg-line/[0.04]"
-              placeholder="Location(optional)"
+              className="ios-input"
+              placeholder="位置（可选）"
               value={location}
               onChange={(event) => setLocation(event.target.value)}
             />
             <input
-              className="w-full bg-transparent border border-line px-4 py-3 text-sm font-mono placeholder:text-ink/30 outline-none focus:bg-line/[0.04]"
-              placeholder="Tags: design, ui, photo"
+              className="ios-input"
+              placeholder="标签：design, ui, photo"
               value={tags}
               onChange={(event) => setTags(event.target.value)}
             />
@@ -127,83 +130,83 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
             {(['public', 'followers', 'private'] as const).map((value) => (
               <button
                 key={value}
-                className={`px-3 py-1.5 border font-mono text-[9px] font-bold ${
+                className={`rounded-full px-4 py-2 text-[12px] font-medium ${
                   visibility === value
-                    ? 'bg-ink text-bg border-line'
-                    : 'bg-line/[0.05] text-ink border-line'
+                    ? 'bg-[#dcebff] text-accent'
+                    : 'ios-pill text-ink/65'
                 }`}
                 onClick={() => setVisibility(value)}
               >
-                [ {value.toUpperCase()} ]
+                {value}
               </button>
             ))}
-            <button className="bg-bg text-ink px-3 py-1.5 border border-line border-dashed font-mono text-[9px] font-bold flex items-center gap-1.5 hover:bg-line hover:text-bg transition-colors">
-              <Plus size={12} /> ATTACH_LBL
+            <button className="ios-pill text-ink/65 px-4 py-2 rounded-full text-[12px] font-medium flex items-center gap-1.5">
+              <Plus size={12} /> 添加标签
             </button>
           </div>
         </section>
 
-        <section className="bg-bg border border-line p-0 space-y-0">
-          <div className="bg-line/[0.05] border-b border-line px-3 py-1">
-            <span className="font-mono text-[9px] font-bold opacity-60">SYSTEM_METADATA</span>
+        <section className="ios-card rounded-[28px] overflow-hidden space-y-0">
+          <div className="px-4 py-4">
+            <span className="section-label">更多设置</span>
           </div>
           
-          <div className="flex items-center justify-between group cursor-pointer border-b border-line p-4 hover:bg-line/[0.03]">
+          <div className="flex items-center justify-between group cursor-pointer border-t border-line/60 p-4 hover:bg-white/40">
             <div className="flex items-center gap-3">
-              <div className="bg-bg border border-line p-2 text-ink">
+              <div className="ios-pill rounded-2xl p-2.5 text-ink">
                 <Layout size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-ink uppercase tracking-tight">Category_Mapping</p>
-                <p className="font-mono text-[9px] opacity-60">Selection of domain register</p>
+                <p className="text-sm font-semibold text-ink">内容分类</p>
+                <p className="text-[12px] text-ink/55">选择作品的主题与展示方式</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <span className="font-mono text-[10px] font-bold text-accent tracking-tighter">PHOTO_GRA</span>
+              <span className="text-[12px] font-medium text-accent">摄影</span>
               <ChevronRight size={14} className="opacity-40" />
             </div>
           </div>
 
-          <div className="flex items-center justify-between group cursor-pointer border-b border-line p-4 hover:bg-line/[0.03]">
+          <div className="flex items-center justify-between group cursor-pointer border-t border-line/60 p-4 hover:bg-white/40">
             <div className="flex items-center gap-3">
-              <div className="bg-bg border border-line p-2 text-ink">
+              <div className="ios-pill rounded-2xl p-2.5 text-ink">
                 <MapPin size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-ink uppercase tracking-tight">Geo_Location</p>
-                <p className="font-mono text-[9px] opacity-60">Coordinate metadata injection</p>
+                <p className="text-sm font-semibold text-ink">地理位置</p>
+                <p className="text-[12px] text-ink/55">为这条内容补充位置说明</p>
               </div>
             </div>
             <ChevronRight size={14} className="opacity-40" />
           </div>
 
-          <div className="flex items-center justify-between group cursor-pointer p-4 hover:bg-line/[0.03]">
+          <div className="flex items-center justify-between group cursor-pointer border-t border-line/60 p-4 hover:bg-white/40">
             <div className="flex items-center gap-3">
-              <div className="bg-bg border border-line p-2 text-ink">
+              <div className="ios-pill rounded-2xl p-2.5 text-ink">
                 <Users size={16} />
               </div>
               <div>
-                <p className="text-xs font-bold text-ink uppercase tracking-tight">Access_Permissions</p>
-                <p className="font-mono text-[9px] opacity-60">Read/Write ACL verification</p>
+                <p className="text-sm font-semibold text-ink">可见范围</p>
+                <p className="text-[12px] text-ink/55">决定谁可以看到这条内容</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <span className="font-mono text-[10px] font-bold text-accent tracking-tighter">
-                {visibility.toUpperCase()}
+              <span className="text-[12px] font-medium text-accent">
+                {visibility}
               </span>
               <ChevronRight size={14} className="opacity-40" />
             </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-0 border border-line bg-line">
-          <button className="bg-bg p-5 flex flex-col items-center gap-2 hover:bg-ink hover:text-bg transition-all border-r border-line">
+        <div className="grid grid-cols-2 gap-3">
+          <button className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all">
             <Calendar size={20} />
-            <span className="font-mono text-[9px] font-bold uppercase tracking-widest leading-none">Sched_Trans</span>
+            <span className="text-[12px] font-medium leading-none">定时发布</span>
           </button>
-          <button className="bg-bg p-5 flex flex-col items-center gap-2 hover:bg-ink hover:text-bg transition-all">
+          <button className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all">
             <FileText size={20} />
-            <span className="font-mono text-[9px] font-bold uppercase tracking-widest leading-none">Save_Local</span>
+            <span className="text-[12px] font-medium leading-none">保存草稿</span>
           </button>
         </div>
       </main>

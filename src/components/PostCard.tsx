@@ -8,72 +8,72 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   return (
-    <article className="bg-[#D9D8D4]/20 border border-line mb-4 transition-colors hover:bg-[#D9D8D4]/40">
-      <div className="border-b border-line flex items-center justify-between px-4 py-2 bg-line/[0.03]">
+    <article className="ios-card rounded-[28px] mb-5 overflow-hidden transition-transform hover:-translate-y-0.5">
+      <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
-          <img alt={post.author.name} className="w-8 h-8 rounded-none border border-line object-cover" src={post.author.avatar} referrerPolicy="no-referrer" />
+          <img alt={post.author.name} className="w-11 h-11 rounded-full border border-white/80 object-cover shadow-sm" src={post.author.avatar} referrerPolicy="no-referrer" />
           <div>
-            <h3 className="font-bold text-xs uppercase tracking-tight text-ink">{post.author.name}</h3>
-            <p className="font-mono text-[9px] opacity-60 uppercase">{post.timestamp}</p>
+            <h3 className="font-semibold text-[15px] tracking-tight text-ink">{post.author.name}</h3>
+            <p className="text-[12px] text-ink/55">{post.timestamp}</p>
           </div>
         </div>
-        <button className="p-1 hover:bg-ink hover:text-bg transition-colors">
+        <button className="ios-pill rounded-full p-2 text-ink/60 hover:text-accent transition-colors">
           <MoreHorizontal size={14} />
         </button>
       </div>
       
-      <div className="p-4 border-b border-line">
-        <p className="text-sm text-ink leading-snug font-medium mb-3">
+      <div className="px-5 pb-4">
+        <p className="text-[15px] text-ink leading-7 mb-4">
           {post.content}
         </p>
 
         {post.type === 'quote' ? (
-          <div className="bg-bg border border-line p-4 relative overflow-hidden">
-             <div className="absolute top-0 left-0 w-1 h-full bg-line" />
-             <p className="text-sm text-ink italic font-serif leading-relaxed">
+          <div className="ios-panel rounded-[24px] p-5 relative overflow-hidden">
+             <div className="absolute inset-y-4 left-0 w-1 rounded-full bg-accent/70" />
+             <p className="text-[17px] text-ink italic leading-relaxed pl-4">
                {post.content}
              </p>
           </div>
         ) : post.type === 'gallery' && post.images ? (
-          <div className="grid grid-cols-2 gap-1 border border-line bg-line p-1">
-            <div className="bg-bg h-48 overflow-hidden">
-              <img alt="Gallery 1" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src={post.images[0]} referrerPolicy="no-referrer" />
+          <div className="grid grid-cols-2 gap-1 rounded-[24px] overflow-hidden bg-white/80 p-1 border border-white/80">
+            <div className="bg-bg h-48 overflow-hidden rounded-[20px]">
+              <img alt="Gallery 1" className="w-full h-full object-cover" src={post.images[0]} referrerPolicy="no-referrer" />
             </div>
             <div className="grid grid-rows-2 gap-1 h-48">
-              <div className="bg-bg overflow-hidden border-l border-line">
-                <img alt="Gallery 2" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src={post.images[1]} referrerPolicy="no-referrer" />
+              <div className="bg-bg overflow-hidden rounded-[20px]">
+                <img alt="Gallery 2" className="w-full h-full object-cover" src={post.images[1]} referrerPolicy="no-referrer" />
               </div>
-              <div className="bg-bg overflow-hidden relative border-l border-t border-line">
-                <img alt="Gallery 3" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src={post.images[2]} referrerPolicy="no-referrer" />
-                <div className="absolute inset-0 bg-ink/60 flex items-center justify-center">
-                  <span className="text-bg font-mono text-sm font-bold">+05</span>
+              <div className="bg-bg overflow-hidden relative rounded-[20px]">
+                <img alt="Gallery 3" className="w-full h-full object-cover" src={post.images[2]} referrerPolicy="no-referrer" />
+                <div className="absolute inset-0 bg-ink/25 flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">+5</span>
                 </div>
               </div>
             </div>
           </div>
         ) : post.image ? (
-          <div className="border border-line overflow-hidden aspect-[4/5] bg-bg">
-            <img alt="Post visual" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src={post.image} referrerPolicy="no-referrer" />
+          <div className="overflow-hidden aspect-[4/5] bg-bg rounded-[24px] border border-white/80">
+            <img alt="Post visual" className="w-full h-full object-cover" src={post.image} referrerPolicy="no-referrer" />
           </div>
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between px-3 py-2 bg-line/[0.03]">
+      <div className="flex items-center justify-between px-5 py-4 border-t border-white/70">
         <div className="flex items-center gap-6">
           <button className="flex items-center gap-2 group">
-            <Heart size={16} className="text-ink group-hover:text-accent transition-colors" />
-            <span className="font-mono text-[10px] font-bold group-hover:text-accent transition-colors">{formatCompactCount(post.likes)}</span>
+            <Heart size={18} className="text-ink/75 group-hover:text-accent transition-colors" />
+            <span className="text-[13px] font-medium text-ink/70 group-hover:text-accent transition-colors">{formatCompactCount(post.likes)}</span>
           </button>
           <button className="flex items-center gap-2 group">
-            <MessageCircle size={16} className="text-ink group-hover:text-ink transition-colors" />
-            <span className="font-mono text-[10px] font-bold group-hover:text-ink transition-colors">{post.comments}</span>
+            <MessageCircle size={18} className="text-ink/75 transition-colors" />
+            <span className="text-[13px] font-medium text-ink/70 transition-colors">{post.comments}</span>
           </button>
         </div>
         <div className="flex gap-4">
-          <button className="text-ink opacity-60 hover:opacity-100 transition-opacity">
+          <button className="text-ink/55 hover:text-accent transition-colors">
             <Bookmark size={16} />
           </button>
-          <button className="text-ink opacity-60 hover:opacity-100 transition-opacity">
+          <button className="text-ink/55 hover:text-accent transition-colors">
             <Send size={16} />
           </button>
         </div>

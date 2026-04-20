@@ -199,11 +199,11 @@ export async function createPost(input: CreatePostInput, accessToken?: string): 
     author_id: authorId,
     content: input.content,
     image_url: input.image ?? null,
-    image_urls: input.type === 'gallery' && input.image ? [input.image] : null,
+    image_urls: input.type === 'gallery' && input.image ? [input.image] : [],
     type: input.type ?? 'standard',
     visibility: input.visibility,
     location: input.location ?? null,
-    tags: input.tags,
+    tags: input.tags ?? [],
   };
 
   const createdRows = await fetchJson<SupabasePostRow[]>(

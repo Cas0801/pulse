@@ -6,34 +6,30 @@ interface TopBarProps {
 
 export default function TopBar({ source }: TopBarProps) {
   return (
-    <header className="sticky top-0 w-full z-40 bg-bg border-b border-line flex flex-col">
-      <div className="flex justify-between items-center px-6 py-3 border-b border-line">
-        <h1 className="text-xl font-black tracking-tighter text-ink uppercase">Pulse</h1>
+    <header className="sticky top-0 w-full z-40 bg-white/55 backdrop-blur-2xl border-b border-line/70 flex flex-col">
+      <div className="flex justify-between items-center px-6 pt-5 pb-3">
+        <div>
+          <div className="section-label">For You</div>
+          <h1 className="mt-1 text-[30px] leading-none font-semibold text-ink">Pulse</h1>
+        </div>
         <div className="flex items-center gap-4">
-          <button className="p-1 hover:bg-ink hover:text-bg transition-colors border border-transparent hover:border-line">
+          <button className="ios-pill rounded-full p-2.5 text-ink/80 hover:text-accent transition-colors">
             <Search size={18} />
           </button>
-          <button className="relative p-1 hover:bg-ink hover:text-bg transition-colors border border-transparent hover:border-line">
+          <button className="relative ios-pill rounded-full p-2.5 text-ink/80 hover:text-accent transition-colors">
             <Bell size={18} />
-            <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-accent rounded-full border border-bg"></span>
+            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border border-white"></span>
           </button>
         </div>
       </div>
       
-      <div className="flex justify-between items-center px-6 py-2 bg-surface-container/30">
-        <div className="font-serif italic text-xs opacity-70">
-          Pulse / Main / Feed_Overview
+      <div className="flex justify-between items-center px-6 pb-4">
+        <div className="text-sm text-ink/65">
+          今日灵感、动态与创作更新
         </div>
-        <div className="flex gap-6">
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] uppercase opacity-60 leading-none">Status</span>
-            <span className="font-mono text-[10px] font-bold">{source === 'supabase' ? 'SYNCED' : 'MOCK'}</span>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] uppercase opacity-60 leading-none">Uptime</span>
-            <span className="font-mono text-[10px] font-bold">1,422H</span>
-          </div>
-        </div>
+        <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${source === 'supabase' ? 'bg-[#dff0ff] text-accent' : 'bg-white text-ink/70'} ios-pill`}>
+          {source === 'supabase' ? 'Cloud Live' : 'Demo'}
+        </span>
       </div>
     </header>
   );
