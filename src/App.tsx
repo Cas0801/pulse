@@ -263,6 +263,7 @@ export default function App() {
                   me={feed.me}
                   isSubmitting={isSubmitting}
                   onSubmit={handleCreatePost}
+                  onTabChange={handleTabChange}
                 />
               </motion.div>
             )}

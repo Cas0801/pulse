@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import type { CreatePostInput, PendingUploadImage, PostVisibility, User } from '../types';
 import StateCard from './StateCard';
+import BottomNav from './BottomNav';
 
 interface CreateViewProps {
   onClose: () => void;
   me: User;
   isSubmitting: boolean;
   onSubmit: (input: CreatePostInput) => Promise<void>;
+  onTabChange: (tab: string) => void;
 }
 
 const CATEGORY_OPTIONS = ['摄影', '设计', '旅行', '灵感'];
@@ -55,7 +57,7 @@ function fileToPendingImage(file: File): Promise<PendingUploadImage> {
   });
 }
 
-export default function CreateView({ onClose, me, isSubmitting, onSubmit }: CreateViewProps) {
+export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabChange }: CreateViewProps) {
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
   const [location, setLocation] = useState('');
@@ -253,7 +255,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
             </button>
           </header>
 
-          <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-24 pt-5 lg:px-7 lg:pb-8">
+          <main className="flex-1 overflow-y-auto no-scrollbar px-4 pb-40 pt-5 lg:px-7 lg:pb-8">
             {notice ? (
               <div className="mb-4 ios-panel flex items-center justify-between gap-3 rounded-[20px] px-4 py-3">
                 <span className="text-sm text-ink/70">{notice}</span>
@@ -516,6 +518,18 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
               </div>
             </section>
           </main>
+          <div className="lg:hidden">
+            <BottomNav
+              activeTab="create"
+              onTabChange={(tab) => {
+                if (tab === 'create') {
+                  return;
+                }
+                onClose();
+                onTabChange(tab);
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
