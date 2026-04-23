@@ -518,18 +518,16 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
               </div>
             </section>
           </main>
-          <div className="lg:hidden">
-            <BottomNav
-              activeTab="create"
-              onTabChange={(tab) => {
-                if (tab === 'create') {
-                  return;
-                }
-                onClose();
-                onTabChange(tab);
-              }}
-            />
-          </div>
+          <BottomNav
+            activeTab="create"
+            onTabChange={(tab) => {
+              if (tab === 'create') {
+                return;
+              }
+              onClose();
+              onTabChange(tab);
+            }}
+          />
         </div>
       </div>
     </div>
