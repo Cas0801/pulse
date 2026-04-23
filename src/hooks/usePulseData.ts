@@ -6,6 +6,7 @@ import {
   fetchPostComments as fetchPostCommentsRequest,
   setPostBookmark,
   setPostLike,
+  uploadPostImage,
 } from '../lib/api';
 import type { CreatePostInput, FeedData, PostComment } from '../types';
 
@@ -16,7 +17,13 @@ export function usePulseData(accessToken?: string | null) {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [commentLoadingByPost, setCommentLoadingByPost] = useState<Record<string, boolean>>({});
   const [commentSubmittingByPost, setCommentSubmittingByPost] = useState<Record<string, boolean>>({});
+  const [commentErrorByPost, setCommentErrorByPost] = useState<Record<string, string | null>>({});
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  function dismissSuccessMessage() {
+    setSuccessMessage(null);
+  }
 
   async function reload() {
     setIsLoading(true);
@@ -38,7 +45,41 @@ export function usePulseData(accessToken?: string | null) {
   async function createPost(input: CreatePostInput) {
     setIsSubmitting(true);
     try {
-      const created = await createPostRequest(input, accessToken);
+      const uploadedMedia = input.localImages?.length
+        ? await Promise.all(
+            input.localImages.map((image, index) =>
+              uploadPostImage(
+                {
+                  fileName: image.fileName,
+                  mimeType: image.mimeType,
+                  dataUrl: image.dataUrl,
+                  width: image.width,
+                  height: image.height,
+                },
+                accessToken,
+              ).then((asset) => ({
+                ...asset,
+                sortOrder: index,
+                isCover: image.isCover,
+              })),
+            ),
+          )
+        : [];
+
+      const coverAsset = uploadedMedia.find((item) => item.isCover) ?? uploadedMedia[0];
+      const created = await createPostRequest(
+        {
+          ...input,
+          image: coverAsset?.url ?? input.image,
+          images: uploadedMedia.length > 0 ? uploadedMedia.map((item) => item.url) : input.images,
+          media: uploadedMedia.length > 0 ? uploadedMedia : input.media,
+          localImages: undefined,
+          type:
+            input.type ??
+            (uploadedMedia.length > 1 ? 'gallery' : uploadedMedia.length === 1 || input.image ? 'standard' : 'quote'),
+        },
+        accessToken,
+      );
       setFeed((current) => {
         if (!current) {
           return current;
@@ -59,6 +100,7 @@ export function usePulseData(accessToken?: string | null) {
         };
       });
       setError(null);
+      setSuccessMessage('新内容已发布到内容流');
       return created;
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : '发布失败';
@@ -213,6 +255,10 @@ export function usePulseData(accessToken?: string | null) {
       ...current,
       [postId]: true,
     }));
+    setCommentErrorByPost((current) => ({
+      ...current,
+      [postId]: null,
+    }));
 
     try {
       const comments = await fetchPostCommentsRequest(postId, accessToken);
@@ -224,6 +270,10 @@ export function usePulseData(accessToken?: string | null) {
       return comments;
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : '评论加载失败';
+      setCommentErrorByPost((current) => ({
+        ...current,
+        [postId]: message,
+      }));
       setError(message);
       throw requestError;
     } finally {
@@ -238,6 +288,10 @@ export function usePulseData(accessToken?: string | null) {
     setCommentSubmittingByPost((current) => ({
       ...current,
       [postId]: true,
+    }));
+    setCommentErrorByPost((current) => ({
+      ...current,
+      [postId]: null,
     }));
 
     try {
@@ -264,9 +318,14 @@ export function usePulseData(accessToken?: string | null) {
         };
       });
       setError(null);
+      setSuccessMessage('评论已发送并同步到动态');
       return created;
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : '评论发布失败';
+      setCommentErrorByPost((current) => ({
+        ...current,
+        [postId]: message,
+      }));
       setError(message);
       throw requestError;
     } finally {
@@ -282,6 +341,8 @@ export function usePulseData(accessToken?: string | null) {
     isLoading,
     isSubmitting,
     error,
+    successMessage,
+    dismissSuccessMessage,
     reload,
     createPost,
     toggleLike,
@@ -289,6 +350,7 @@ export function usePulseData(accessToken?: string | null) {
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,
+    commentErrorByPost,
     loadComments,
     createComment,
   };

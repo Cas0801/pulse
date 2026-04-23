@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from '../api/_lib/config';
-import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike } from '../api/_lib/supabase';
+import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike, uploadImageAsset } from '../api/_lib/supabase';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
   next();
 });
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
@@ -47,7 +47,7 @@ app.get('/api/feed', async (req: Request, res: Response) => {
 });
 
 app.post('/api/posts', async (req: Request, res: Response) => {
-  const { content, image, type, visibility, location, tags } = req.body ?? {};
+  const { content, image, images, media, type, visibility, location, tags } = req.body ?? {};
 
   if (typeof content !== 'string' || content.trim().length < 3) {
     res.status(400).json({ message: '内容至少需要 3 个字符' });
@@ -65,6 +65,20 @@ app.post('/api/posts', async (req: Request, res: Response) => {
     const post = await createPost({
       content: content.trim(),
       image: typeof image === 'string' && image.trim() ? image.trim() : undefined,
+      images: Array.isArray(images) ? images.filter((item) => typeof item === 'string' && item.trim()) : undefined,
+      media: Array.isArray(media)
+        ? media
+            .filter((item) => item && typeof item.url === 'string')
+            .map((item, index) => ({
+              id: typeof item.id === 'string' ? item.id : undefined,
+              url: item.url.trim(),
+              storagePath: typeof item.storagePath === 'string' ? item.storagePath : undefined,
+              width: typeof item.width === 'number' ? item.width : undefined,
+              height: typeof item.height === 'number' ? item.height : undefined,
+              sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : index,
+              isCover: Boolean(item.isCover),
+            }))
+        : undefined,
       type: type === 'quote' || type === 'gallery' ? type : 'standard',
       visibility,
       location: typeof location === 'string' && location.trim() ? location.trim() : undefined,
@@ -75,6 +89,36 @@ app.post('/api/posts', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       message: '创建帖子失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/uploads/images', async (req: Request, res: Response) => {
+  const { fileName, mimeType, dataUrl, width, height } = req.body ?? {};
+
+  if (typeof fileName !== 'string' || typeof mimeType !== 'string' || typeof dataUrl !== 'string') {
+    res.status(400).json({ message: '缺少图片上传参数' });
+    return;
+  }
+
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const asset = await uploadImageAsset(
+      {
+        fileName,
+        mimeType,
+        dataUrl,
+        width: typeof width === 'number' ? width : undefined,
+        height: typeof height === 'number' ? height : undefined,
+      },
+      accessToken,
+    );
+    res.status(201).json(asset);
+  } catch (error) {
+    res.status(500).json({
+      message: '图片上传失败',
       details: error instanceof Error ? error.message : 'unknown error',
     });
   }

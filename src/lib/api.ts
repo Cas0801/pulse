@@ -6,6 +6,8 @@ import type {
   PostBookmarkResult,
   PostComment,
   PostLikeResult,
+  UploadedImageAsset,
+  UploadImagePayload,
 } from '../types';
 
 interface RequestOptions extends RequestInit {
@@ -38,6 +40,14 @@ export function fetchFeed(accessToken?: string | null) {
 
 export function createPost(input: CreatePostInput, accessToken?: string | null) {
   return request<Post>('/api/posts', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function uploadPostImage(input: UploadImagePayload, accessToken?: string | null) {
+  return request<UploadedImageAsset>('/api/uploads/images', {
     method: 'POST',
     body: JSON.stringify(input),
     accessToken,

@@ -20,6 +20,15 @@ interface Post {
   content: string;
   image?: string;
   images?: string[];
+  media?: Array<{
+    id?: string;
+    url: string;
+    storagePath?: string;
+    width?: number;
+    height?: number;
+    sortOrder: number;
+    isCover: boolean;
+  }>;
   timestamp: string;
   createdAt: string;
   likes: number;
@@ -53,7 +62,18 @@ interface SupabasePostRow {
   visibility: PostVisibility | null;
   location: string | null;
   tags: string[] | null;
+  post_images?: SupabasePostImageRow[] | null;
   author: SupabaseUserRow | SupabaseUserRow[] | null;
+}
+
+interface SupabasePostImageRow {
+  id: string;
+  storage_path: string;
+  public_url: string;
+  width: number | null;
+  height: number | null;
+  sort_order: number | null;
+  is_cover: boolean | null;
 }
 
 const FALLBACK_ME: User = {
@@ -134,13 +154,46 @@ function formatRelativeTime(dateInput: string): string {
   return target.toLocaleDateString('zh-CN');
 }
 
+function normalizeMedia(row: SupabasePostRow) {
+  const relationMedia = [...(row.post_images ?? [])]
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .map((item, index) => ({
+      id: item.id,
+      url: item.public_url,
+      storagePath: item.storage_path,
+      width: item.width ?? undefined,
+      height: item.height ?? undefined,
+      sortOrder: item.sort_order ?? index,
+      isCover: item.is_cover ?? index === 0,
+    }));
+
+  if (relationMedia.length > 0) {
+    return relationMedia;
+  }
+
+  const legacyImages = row.image_urls?.filter(Boolean) ?? [];
+  if (legacyImages.length === 0 && !row.image_url) {
+    return [];
+  }
+
+  const merged = row.image_url && !legacyImages.includes(row.image_url) ? [row.image_url, ...legacyImages] : legacyImages;
+  return merged.map((url, index) => ({
+    url,
+    sortOrder: index,
+    isCover: row.image_url ? row.image_url === url : index === 0,
+  }));
+}
+
 function normalizePost(row: SupabasePostRow): Post {
+  const media = normalizeMedia(row);
+  const cover = media.find((item) => item.isCover) ?? media[0];
   return {
     id: row.id,
     author: normalizeAuthor(row.author),
     content: row.content,
-    image: row.image_url ?? undefined,
-    images: row.image_urls ?? undefined,
+    image: cover?.url ?? row.image_url ?? undefined,
+    images: media.length > 0 ? media.map((item) => item.url) : row.image_urls ?? undefined,
+    media: media.length > 0 ? media : undefined,
     timestamp: formatRelativeTime(row.created_at),
     createdAt: row.created_at,
     likes: row.likes_count ?? 0,
@@ -186,7 +239,7 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const { content, image, type, visibility, location, tags } = req.body ?? {};
+  const { content, image, images, media, type, visibility, location, tags } = req.body ?? {};
 
   if (typeof content !== 'string' || content.trim().length < 3) {
     res.status(400).json({ message: '内容至少需要 3 个字符' });
@@ -206,6 +259,8 @@ export default async function handler(req: any, res: any) {
         author: FALLBACK_ME,
         content: content.trim(),
         image: typeof image === 'string' && image.trim() ? image.trim() : undefined,
+        images: Array.isArray(images) ? images.filter((item) => typeof item === 'string' && item.trim()) : undefined,
+        media: Array.isArray(media) ? media : undefined,
         createdAt,
         timestamp: '刚刚',
         likes: 0,
@@ -236,7 +291,13 @@ export default async function handler(req: any, res: any) {
       author_id: authorId,
       content: content.trim(),
       image_url: typeof image === 'string' && image.trim() ? image.trim() : null,
-      image_urls: type === 'gallery' && typeof image === 'string' && image.trim() ? [image.trim()] : [],
+      image_urls: Array.isArray(images)
+        ? images.filter((item) => typeof item === 'string' && item.trim())
+        : type === 'gallery' && typeof image === 'string' && image.trim()
+          ? [image.trim()]
+          : typeof image === 'string' && image.trim()
+            ? [image.trim()]
+            : [],
       type: type === 'quote' || type === 'gallery' ? type : 'standard',
       visibility,
       location: typeof location === 'string' && location.trim() ? location.trim() : null,
@@ -244,7 +305,7 @@ export default async function handler(req: any, res: any) {
     };
 
     const rows = await fetchJson<SupabasePostRow[]>(
-      `${getRestBaseUrl()}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)`,
+      `${getRestBaseUrl()}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,post_images(id,storage_path,public_url,width,height,sort_order,is_cover),author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)`,
       {
         method: 'POST',
         headers: {
@@ -257,6 +318,49 @@ export default async function handler(req: any, res: any) {
 
     const created = rows[0];
 
+    if (created && Array.isArray(media) && media.length > 0) {
+      try {
+        await fetchJson<unknown>(
+          `${getRestBaseUrl()}/post_images`,
+          {
+            method: 'POST',
+            headers: {
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(
+              media
+                .filter((item) => item && typeof item.url === 'string')
+                .map((item, index) => ({
+                  post_id: created.id,
+                  storage_path: typeof item.storagePath === 'string' ? item.storagePath : null,
+                  public_url: item.url.trim(),
+                  width: typeof item.width === 'number' ? item.width : null,
+                  height: typeof item.height === 'number' ? item.height : null,
+                  sort_order: typeof item.sortOrder === 'number' ? item.sortOrder : index,
+                  is_cover: Boolean(item.isCover),
+                })),
+            ),
+          },
+          accessToken,
+        );
+        const refreshed = await fetchJson<SupabasePostRow[]>(
+          `${getRestBaseUrl()}/posts?id=eq.${encodeURIComponent(created.id)}&select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,post_images(id,storage_path,public_url,width,height,sort_order,is_cover),author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&limit=1`,
+          undefined,
+          accessToken,
+        );
+        if (refreshed[0]) {
+          res.status(201).json(normalizePost(refreshed[0]));
+          return;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('post_images')) {
+          throw new Error('图片表尚未初始化，请先执行 supabase/images.sql');
+        }
+        throw error;
+      }
+    }
+
     if (!created) {
       const createdAt = new Date().toISOString();
       res.status(201).json({
@@ -264,6 +368,8 @@ export default async function handler(req: any, res: any) {
         author: FALLBACK_ME,
         content: content.trim(),
         image: typeof image === 'string' && image.trim() ? image.trim() : undefined,
+        images: Array.isArray(images) ? images.filter((item) => typeof item === 'string' && item.trim()) : undefined,
+        media: Array.isArray(media) ? media : undefined,
         createdAt,
         timestamp: formatRelativeTime(createdAt),
         likes: 0,

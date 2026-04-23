@@ -2,9 +2,11 @@ import type {
   CreatePostInput,
   FeedData,
   Post,
+  PostImage,
   PostBookmarkResult,
   PostComment,
   PostLikeResult,
+  UploadedImageAsset,
   User,
 } from '../../src/types';
 import { MOCK_FEED } from '../../src/lib/mockData';
@@ -34,7 +36,20 @@ interface SupabasePostRow {
   visibility: Post['visibility'] | null;
   location: string | null;
   tags: string[] | null;
+  post_images?: SupabasePostImageRow[] | null;
   author: SupabaseUserRow | SupabaseUserRow[] | null;
+}
+
+interface SupabasePostImageRow {
+  id: string;
+  post_id?: string;
+  storage_path: string;
+  public_url: string;
+  width: number | null;
+  height: number | null;
+  sort_order: number | null;
+  is_cover: boolean | null;
+  created_at?: string;
 }
 
 interface SupabaseIdRow {
@@ -82,6 +97,11 @@ function getBaseUrl() {
   return `${config.supabaseUrl}/rest/v1`;
 }
 
+function getStorageObjectBaseUrl() {
+  const config = getConfig();
+  return `${config.supabaseUrl}/storage/v1/object`;
+}
+
 function normalizeAuthor(author: SupabasePostRow['author']): User {
   const profile = Array.isArray(author) ? author[0] : author;
 
@@ -92,13 +112,47 @@ function normalizeAuthor(author: SupabasePostRow['author']): User {
   return normalizeProfile(profile);
 }
 
+function normalizeMedia(row: SupabasePostRow): PostImage[] {
+  const relationMedia = [...(row.post_images ?? [])]
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .map((item, index) => ({
+      id: item.id,
+      url: item.public_url,
+      storagePath: item.storage_path,
+      width: item.width ?? undefined,
+      height: item.height ?? undefined,
+      sortOrder: item.sort_order ?? index,
+      isCover: item.is_cover ?? index === 0,
+    }));
+
+  if (relationMedia.length > 0) {
+    return relationMedia;
+  }
+
+  const legacyImages = row.image_urls?.filter(Boolean) ?? [];
+  if (legacyImages.length === 0 && !row.image_url) {
+    return [];
+  }
+
+  const merged = row.image_url && !legacyImages.includes(row.image_url) ? [row.image_url, ...legacyImages] : legacyImages;
+
+  return merged.map((url, index) => ({
+    url,
+    sortOrder: index,
+    isCover: row.image_url ? row.image_url === url : index === 0,
+  }));
+}
+
 function normalizePost(row: SupabasePostRow, engagement?: { likedPostIds: Set<string>; bookmarkedPostIds: Set<string> }): Post {
+  const media = normalizeMedia(row);
+  const cover = media.find((item) => item.isCover) ?? media[0];
   return {
     id: row.id,
     author: normalizeAuthor(row.author),
     content: row.content,
-    image: row.image_url ?? undefined,
-    images: row.image_urls ?? undefined,
+    image: cover?.url ?? row.image_url ?? undefined,
+    images: media.length > 0 ? media.map((item) => item.url) : row.image_urls ?? undefined,
+    media: media.length > 0 ? media : undefined,
     timestamp: formatRelativeTime(row.created_at),
     createdAt: row.created_at,
     likes: row.likes_count ?? 0,
@@ -170,6 +224,31 @@ async function fetchOptionalIds(url: string, accessToken?: string) {
   }
 }
 
+async function fetchPosts(accessToken?: string) {
+  const baseUrl = getBaseUrl();
+  const query =
+    'id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,post_images(id,storage_path,public_url,width,height,sort_order,is_cover),author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)';
+
+  try {
+    return await fetchJson<SupabasePostRow[]>(
+      `${baseUrl}/posts?select=${encodeURIComponent(query)}&order=created_at.desc`,
+      undefined,
+      accessToken,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.includes('post_images')) {
+      throw error;
+    }
+
+    return fetchJson<SupabasePostRow[]>(
+      `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc`,
+      undefined,
+      accessToken,
+    );
+  }
+}
+
 async function resolveActorId(accessToken?: string) {
   if (accessToken) {
     const authUser = await fetchAuthenticatedUser(accessToken);
@@ -190,11 +269,7 @@ export async function loadFeed(accessToken?: string): Promise<FeedData> {
     fetchJson<SupabaseUserRow[]>(
       `${baseUrl}/profiles?select=id,name,username,avatar_url,bio,post_count,follower_count,following_count&order=name.asc`,
     ),
-    fetchJson<SupabasePostRow[]>(
-      `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc`,
-      undefined,
-      accessToken,
-    ),
+    fetchPosts(accessToken),
     actorId
       ? fetchOptionalIds(
           `${baseUrl}/post_likes?select=post_id&user_id=eq.${encodeURIComponent(actorId)}`,
@@ -274,7 +349,7 @@ export async function createPost(input: CreatePostInput, accessToken?: string): 
     author_id: authorId,
     content: input.content,
     image_url: input.image ?? null,
-    image_urls: input.type === 'gallery' && input.image ? [input.image] : [],
+    image_urls: input.images ?? (input.type === 'gallery' && input.image ? [input.image] : input.image ? [input.image] : []),
     type: input.type ?? 'standard',
     visibility: input.visibility,
     location: input.location ?? null,
@@ -282,7 +357,7 @@ export async function createPost(input: CreatePostInput, accessToken?: string): 
   };
 
   const createdRows = await fetchJson<SupabasePostRow[]>(
-    `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)`,
+    `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,post_images(id,storage_path,public_url,width,height,sort_order,is_cover),author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)`,
     {
       method: 'POST',
       headers: {
@@ -294,6 +369,43 @@ export async function createPost(input: CreatePostInput, accessToken?: string): 
   );
 
   const created = createdRows[0];
+
+  if (created && input.media && input.media.length > 0) {
+    try {
+      await fetchJson<SupabasePostImageRow[]>(
+        `${baseUrl}/post_images`,
+        {
+          method: 'POST',
+          headers: {
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(
+            input.media.map((item, index) => ({
+              post_id: created.id,
+              storage_path: item.storagePath,
+              public_url: item.url,
+              width: item.width ?? null,
+              height: item.height ?? null,
+              sort_order: item.sortOrder ?? index,
+              is_cover: item.isCover ?? index === 0,
+            })),
+          ),
+        },
+        accessToken,
+      );
+      const refreshed = await fetchPosts(accessToken);
+      const hydrated = refreshed.find((item) => item.id === created.id);
+      if (hydrated) {
+        return normalizePost(hydrated);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('post_images')) {
+        throw new Error('图片表尚未初始化，请先执行 supabase/images.sql');
+      }
+      throw error;
+    }
+  }
 
   if (!created) {
     const createdAt = new Date().toISOString();
@@ -314,6 +426,74 @@ export async function createPost(input: CreatePostInput, accessToken?: string): 
   }
 
   return normalizePost(created);
+}
+
+function parseDataUrl(dataUrl: string) {
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([a-z0-9+/=]+)$/i);
+  if (!match) {
+    throw new Error('仅支持 JPG、PNG、WebP 图片上传');
+  }
+
+  return {
+    mimeType: match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase(),
+    buffer: Buffer.from(match[2], 'base64'),
+  };
+}
+
+export async function uploadImageAsset(
+  input: {
+    fileName: string;
+    mimeType: string;
+    dataUrl: string;
+    width?: number;
+    height?: number;
+  },
+  accessToken?: string,
+): Promise<UploadedImageAsset> {
+  if (!hasSupabaseConfig()) {
+    return {
+      url: input.dataUrl,
+      width: input.width,
+      height: input.height,
+      sortOrder: 0,
+      isCover: false,
+    };
+  }
+
+  const actorId = (await resolveActorId(accessToken)) ?? 'guest';
+  const { buffer, mimeType } = parseDataUrl(input.dataUrl);
+
+  if (buffer.byteLength > 8 * 1024 * 1024) {
+    throw new Error('单张图片需小于 8MB');
+  }
+
+  const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, '-').toLowerCase() || `image.${mimeType.split('/')[1]}`;
+  const objectPath = `${actorId}/${Date.now()}-${safeName}`;
+  const bucket = getConfig().supabaseImageBucket ?? 'post-images';
+  const response = await fetch(`${getStorageObjectBaseUrl()}/${bucket}/${objectPath}`, {
+    method: 'POST',
+    headers: {
+      apikey: getConfig().supabaseAnonKey ?? '',
+      Authorization: `Bearer ${accessToken ?? getConfig().supabaseServiceRoleKey ?? getConfig().supabaseAnonKey ?? ''}`,
+      'Content-Type': mimeType,
+      'x-upsert': 'false',
+    },
+    body: buffer,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || '图片上传失败');
+  }
+
+  return {
+    url: `${getConfig().supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`,
+    storagePath: objectPath,
+    width: input.width,
+    height: input.height,
+    sortOrder: 0,
+    isCover: false,
+  };
 }
 
 async function fetchPostLikes(postId: string, accessToken?: string) {

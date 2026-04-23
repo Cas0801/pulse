@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Settings, Share2, Bookmark } from 'lucide-react';
+import { Settings, Share2, Bookmark, Sparkles, Grid3X3, Tag } from 'lucide-react';
 import type { Post, User } from '../types';
 import { formatCompactCount } from '../lib/format';
+import StateCard from './StateCard';
+import MediaLightbox from './MediaLightbox';
 
 interface ProfileViewProps {
   me: User;
@@ -12,6 +14,8 @@ interface ProfileViewProps {
 export default function ProfileView({ me, portfolioImages, posts }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'works' | 'saved' | 'tagged'>('works');
   const [banner, setBanner] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   const savedPosts = useMemo(
     () => posts.filter((post) => post.viewerHasBookmarked).slice(0, 6),
@@ -44,17 +48,14 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
   }
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 w-full z-40 bg-white/55 backdrop-blur-2xl border-b border-line/70 flex justify-between items-center px-5 py-5">
+    <div className="min-h-screen bg-transparent">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line/70 bg-white/88 px-5 py-4 backdrop-blur-xl lg:px-7">
         <div>
-          <div className="section-label">Profile</div>
-          <div className="mt-1 text-lg font-semibold">个人主页</div>
+          <div className="section-label">Profile Workspace</div>
+          <div className="mt-1 text-[28px] font-semibold text-ink">用户主页</div>
         </div>
         <div className="flex items-center gap-2">
-           <button
-            className="ios-pill rounded-full p-2.5 text-ink/70 hover:text-accent transition-colors"
-            onClick={() => void handleShare()}
-          >
+          <button className="ios-pill rounded-full p-2.5 text-ink/70 hover:text-accent transition-colors" onClick={() => void handleShare()}>
             <Share2 size={16} />
           </button>
           <button
@@ -66,10 +67,10 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
         </div>
       </header>
 
-      <main className="max-w-screen-md mx-auto pb-32">
+      <main className="px-4 pb-28 pt-5 lg:px-7 lg:pb-10">
         {banner ? (
-          <section className="px-5 pt-4">
-            <div className="ios-panel rounded-[20px] px-4 py-3 flex items-center justify-between gap-3">
+          <section className="mb-4">
+            <div className="ios-panel flex items-center justify-between gap-3 rounded-[20px] px-4 py-3">
               <span className="text-sm text-ink/70">{banner}</span>
               <button className="text-sm font-medium text-accent" onClick={() => setBanner(null)}>
                 关闭
@@ -77,136 +78,190 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
             </div>
           </section>
         ) : null}
-        <section className="px-5 py-6">
-          <div className="ios-card rounded-[32px] p-6">
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-22 h-22 rounded-[28px] border border-white/80 p-1 bg-bg shadow-sm">
-              <img alt="Profile" className="w-20 h-20 rounded-[24px] object-cover" src={me.avatar} referrerPolicy="no-referrer" />
-            </div>
-            <div className="flex flex-col items-end">
-              <div className="ios-pill rounded-full px-3 py-1.5 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accent"></span>
-                <span className="text-[11px] font-semibold text-accent">在线</span>
+
+        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="ios-card rounded-[30px] p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="rounded-[28px] border border-white/80 bg-bg p-1 shadow-sm">
+                  <img alt="Profile" className="h-22 w-22 rounded-[24px] object-cover" src={me.avatar} referrerPolicy="no-referrer" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[30px] font-semibold text-ink">{me.name}</h2>
+                    <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-accent">Creator</span>
+                  </div>
+                  <p className="mt-1 text-[14px] font-medium text-accent">{me.username}</p>
+                  <p className="mt-4 max-w-xl text-[15px] leading-7 text-ink/74">{me.bio}</p>
+                </div>
               </div>
-              <span className="mt-2 text-[12px] text-ink/45">Pulse Creator</span>
+              <div className="hidden rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-accent lg:inline-flex">
+                在线
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              <div className="ios-panel rounded-[22px] p-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Posts</div>
+                <div className="mt-2 text-2xl font-semibold text-ink">{me.stats?.posts ?? 0}</div>
+              </div>
+              <div className="ios-panel rounded-[22px] p-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Followers</div>
+                <div className="mt-2 text-2xl font-semibold text-ink">{formatCompactCount(me.stats?.followers ?? 0)}</div>
+              </div>
+              <div className="ios-panel rounded-[22px] p-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Following</div>
+                <div className="mt-2 text-2xl font-semibold text-ink">{me.stats?.following ?? 0}</div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                className="ios-primary-btn flex-1"
+                onClick={() => setBanner('资料编辑入口已接通，当前可继续扩展成表单编辑页')}
+              >
+                编辑资料
+              </button>
+              <button className="ios-secondary-btn px-6" onClick={() => void handleShare()}>
+                分享主页
+              </button>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <h2 className="text-[30px] font-semibold text-ink">{me.name}</h2>
-              <p className="text-[14px] font-medium text-accent">{me.username}</p>
-            </div>
-            
-            <div className="ios-panel rounded-[24px] p-5 relative">
-              <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center opacity-20">
-                <Bookmark size={14} />
+            <div className="ios-card rounded-[30px] p-5">
+              <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">
+                <Sparkles size={14} />
+                Profile Notes
               </div>
-              <p className="text-[15px] text-ink/80 leading-7">
-                {me.bio}
-              </p>
+              <div className="mt-4 space-y-3 text-sm text-ink/62">
+                <div className="ios-panel rounded-[20px] px-4 py-3">个人页强调身份、产出和互动沉淀，是社交产品的用户中枢。</div>
+                <div className="ios-panel rounded-[20px] px-4 py-3">收藏流、作品流和标签流拆开后，更像成熟产品里的多维个人资产展示。</div>
+              </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <div className="ios-panel rounded-[22px] p-4 flex flex-col items-center justify-center">
-              <span className="text-xl font-semibold text-ink leading-none">{me.stats?.posts ?? 0}</span>
-              <span className="text-[11px] mt-1 text-ink/45">Posts</span>
-            </div>
-            <div className="ios-panel rounded-[22px] p-4 flex flex-col items-center justify-center">
-              <span className="text-xl font-semibold text-ink leading-none">{formatCompactCount(me.stats?.followers ?? 0)}</span>
-              <span className="text-[11px] mt-1 text-ink/45">Followers</span>
-            </div>
-            <div className="ios-panel rounded-[22px] p-4 flex flex-col items-center justify-center">
-              <span className="text-xl font-semibold text-ink leading-none">{me.stats?.following ?? 0}</span>
-              <span className="text-[11px] mt-1 text-ink/45">Following</span>
-            </div>
-          </div>
-
-          <div className="flex gap-4 mt-6">
-            <button
-              className="ios-primary-btn flex-1"
-              onClick={() => setBanner('资料编辑入口已接通，当前可继续扩展成表单编辑页')}
-            >
-              编辑资料
-            </button>
-            <button className="ios-secondary-btn px-6" onClick={() => void handleShare()}>
-              分享
-            </button>
-          </div>
           </div>
         </section>
 
-        <section className="px-5">
-          <div className="ios-panel rounded-[26px] p-2">
-          <div className="grid grid-cols-3 gap-2">
+        <section className="mt-6">
+          <div className="ios-panel grid grid-cols-3 gap-2 rounded-[26px] p-2">
             <button
-              className={`rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'works' ? 'text-accent bg-[#dcebff]' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'works' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('works')}
             >
+              <Grid3X3 size={15} />
               作品
             </button>
             <button
-              className={`rounded-[18px] py-3 text-sm font-medium ${activeTab === 'saved' ? 'text-accent bg-[#dcebff]' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'saved' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('saved')}
             >
+              <Bookmark size={15} />
               收藏
             </button>
             <button
-              className={`rounded-[18px] py-3 text-sm font-medium ${activeTab === 'tagged' ? 'text-accent bg-[#dcebff]' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'tagged' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('tagged')}
             >
-              被标记
+              <Tag size={15} />
+              标签
             </button>
-          </div>
           </div>
 
           {activeTab === 'works' ? (
-            <div className="grid grid-cols-3 gap-2 mt-4">
-              {portfolioImages.map((img, i) => (
-                <div key={i} className="aspect-square rounded-[22px] relative group overflow-hidden bg-surface-container ios-card">
-                  <img alt={`Works ${i}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src={img} referrerPolicy="no-referrer" />
-                  <div className="absolute inset-0 bg-ink/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                     <div className="text-[11px] text-white font-semibold">作品 {i + 1}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {activeTab === 'saved' ? (
-            <div className="mt-4 space-y-3">
-              {savedPosts.length > 0 ? savedPosts.map((post) => (
-                <div key={`${post.id}-saved`} className="ios-card rounded-[24px] px-4 py-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-semibold text-ink">{post.author.name}</div>
-                      <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{post.content}</div>
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
+              {portfolioImages.length > 0 ? (
+                portfolioImages.map((img, i) => (
+                  <button
+                    key={i}
+                    className="ios-card group relative aspect-square overflow-hidden rounded-[24px] text-left"
+                    onClick={() => {
+                      setViewerIndex(i);
+                      setIsViewerOpen(true);
+                    }}
+                  >
+                    <img alt={`Works ${i}`} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" src={img} referrerPolicy="no-referrer" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/55 to-transparent px-4 pb-4 pt-10">
+                      <div className="text-sm font-semibold text-white">作品 {i + 1}</div>
                     </div>
-                    <Bookmark size={16} className="text-accent shrink-0" />
-                  </div>
-                </div>
-              )) : (
-                <div className="ios-panel rounded-[22px] px-4 py-5 text-sm text-ink/55">
-                  你收藏的内容会显示在这里。
+                  </button>
+                ))
+              ) : (
+                <div className="col-span-full">
+                  <StateCard
+                    tone="empty"
+                    eyebrow="Works Empty"
+                    title="作品展示区还是空的"
+                    description="可以先上传一组作品图，或者直接发布一条新动态，把个人主页逐步填充起来。"
+                  />
                 </div>
               )}
             </div>
           ) : null}
 
+          {activeTab === 'saved' ? (
+            <div className="mt-4 grid gap-3">
+              {savedPosts.length > 0 ? (
+                savedPosts.map((post) => (
+                  <div key={`${post.id}-saved`} className="ios-card rounded-[24px] px-4 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-ink">{post.author.name}</div>
+                        <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{post.content}</div>
+                      </div>
+                      <Bookmark size={16} className="shrink-0 text-accent" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <StateCard
+                  tone="empty"
+                  eyebrow="Saved Queue"
+                  title="收藏夹还没有沉淀内容"
+                  description="你收藏的内容会显示在这里，方便后续回看、整理灵感和做二次创作。"
+                />
+              )}
+            </div>
+          ) : null}
+
           {activeTab === 'tagged' ? (
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              {taggedPosts.map((item) => (
-                <div key={item.id} className="ios-card rounded-[22px] px-4 py-4">
-                  <div className="text-[11px] font-semibold text-accent">#{item.tag}</div>
-                  <div className="mt-2 text-sm font-semibold text-ink">{item.post.author.name}</div>
-                  <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{item.post.content}</div>
+            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {taggedPosts.length > 0 ? (
+                taggedPosts.map((item) => (
+                  <div key={item.id} className="ios-card rounded-[22px] px-4 py-4">
+                    <div className="text-[11px] font-semibold text-accent">#{item.tag}</div>
+                    <div className="mt-2 text-sm font-semibold text-ink">{item.post.author.name}</div>
+                    <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{item.post.content}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full">
+                  <StateCard
+                    tone="empty"
+                    eyebrow="Tagged Stream"
+                    title="标签内容还没有形成集合"
+                    description="当动态里逐步沉淀标签后，这里会成为用户主题资产的聚合入口。"
+                  />
                 </div>
-              ))}
+              )}
             </div>
           ) : null}
         </section>
       </main>
+      <MediaLightbox
+        isOpen={isViewerOpen}
+        items={portfolioImages.map((image, index) => ({
+          id: `${me.id}-${index}`,
+          url: image,
+          title: `${me.name} · 作品 ${index + 1}`,
+          subtitle: me.username,
+          meta: 'Portfolio Collection',
+        }))}
+        activeIndex={viewerIndex}
+        onNavigate={setViewerIndex}
+        title={`${me.name} 的作品集`}
+        description={me.bio}
+        onClose={() => setIsViewerOpen(false)}
+      />
     </div>
   );
 }

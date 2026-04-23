@@ -15,7 +15,7 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[398px] z-50">
+    <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[398px] z-50 lg:hidden">
       <div className="ios-shell grid grid-cols-5 rounded-[28px] border border-white/75 px-2 py-2">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;

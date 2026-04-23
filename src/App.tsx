@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { Bell, Compass, Home, MessageSquare, Plus, Sparkles, User } from 'lucide-react';
 import HomeView from './components/HomeView';
 import DiscoverView from './components/DiscoverView';
 import ProfileView from './components/ProfileView';
@@ -13,6 +14,8 @@ import BottomNav from './components/BottomNav';
 import { usePulseData } from './hooks/usePulseData';
 import { useSupabaseAuth } from './hooks/useSupabaseAuth';
 import AuthView from './components/AuthView';
+import StateCard from './components/StateCard';
+import AppShellSkeleton from './components/AppShellSkeleton';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -33,6 +36,8 @@ export default function App() {
     isLoading,
     isSubmitting,
     error,
+    successMessage,
+    dismissSuccessMessage,
     createPost,
     reload,
     toggleLike,
@@ -40,11 +45,24 @@ export default function App() {
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,
+    commentErrorByPost,
     loadComments,
     createComment,
   } = usePulseData(
     session?.access_token,
   );
+
+  useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      dismissSuccessMessage();
+    }, 3200);
+
+    return () => window.clearTimeout(timer);
+  }, [dismissSuccessMessage, successMessage]);
 
   const handleTabChange = (tab: string) => {
     if (tab === 'create') {
@@ -58,16 +76,15 @@ export default function App() {
     await createPost(input);
   }
 
+  const navItems = [
+    { id: 'home', label: '首页', icon: Home },
+    { id: 'discover', label: '发现', icon: Compass },
+    { id: 'messages', label: '消息', icon: MessageSquare },
+    { id: 'profile', label: '我的', icon: User },
+  ];
+
   if (isAuthLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="ios-card max-w-sm w-full rounded-[30px] p-7 text-center">
-          <div className="section-label">Session Sync</div>
-          <h1 className="mt-3 text-2xl font-semibold text-ink">正在连接你的账号</h1>
-          <p className="mt-3 text-sm text-ink/70">正在校验 Supabase 登录态与用户会话。</p>
-        </div>
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   if (hasSupabaseClientEnv && !isAuthenticated) {
@@ -83,127 +100,215 @@ export default function App() {
   }
 
   if (isLoading || !feed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="ios-card max-w-sm w-full rounded-[30px] p-7 text-center">
-          <div className="section-label">Cloud Bootstrap</div>
-          <h1 className="mt-3 text-2xl font-semibold text-ink">正在加载 Pulse</h1>
-          <p className="mt-3 text-sm text-ink/70">正在初始化前后端链路与云端数据连接。</p>
-        </div>
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   return (
-    <div className="flex justify-center min-h-screen px-3 py-4 sm:px-6 sm:py-6">
-      <div className="ios-shell w-full max-w-[430px] relative overflow-hidden flex flex-col min-h-[100dvh] sm:min-h-[900px] rounded-[36px] border border-white/60">
-        {error ? (
-          <div className="border-b border-line/70 bg-[#fdebeb] px-4 py-3 text-[12px] text-ink flex items-center justify-between gap-3">
-            <span>{error}</span>
-            <button className="font-semibold text-accent" onClick={() => void reload()}>
-              重试
-            </button>
+    <div className="min-h-screen px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto lg:shell-desktop">
+        <aside className="hidden lg:flex lg:flex-col lg:gap-4">
+          <div className="rail-card sticky top-6 rounded-[28px] p-5">
+            <div className="section-label">Workspace</div>
+            <h2 className="mt-2 text-[28px] font-semibold text-ink">Pulse</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/58">一个以内容消费、互动反馈和用户关系为核心的社交系统演示。</p>
+            <div className="mt-6 space-y-2">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-sm font-semibold transition-colors ${isActive ? 'bg-accent text-white shadow-[0_12px_30px_rgba(22,119,255,0.2)]' : 'text-ink/65 hover:bg-white/70'}`}
+                    onClick={() => handleTabChange(item.id)}
+                  >
+                    <item.icon size={18} />
+                    {item.label}
+                  </button>
+                );
+              })}
+              <button
+                className="ios-primary-btn mt-3 flex w-full items-center justify-center gap-2"
+                onClick={() => setShowCreate(true)}
+              >
+                <Plus size={16} />
+                发布内容
+              </button>
+            </div>
           </div>
-        ) : null}
-        {hasSupabaseClientEnv && isAuthenticated ? (
-          <div className="border-b border-line/70 bg-white/50 px-4 py-2 text-[11px] text-ink/70 flex items-center justify-between backdrop-blur-xl">
-            <span className="truncate">{session?.user.email}</span>
-            <button className="font-semibold text-accent" onClick={() => void signOut()}>
-              退出登录
-            </button>
+          <div className="rail-card rounded-[28px] p-5">
+            <div className="section-label">Account</div>
+            <div className="mt-3 text-sm text-ink/65">{hasSupabaseClientEnv && isAuthenticated ? session?.user.email : '演示模式 / 未配置 Auth'}</div>
+            {hasSupabaseClientEnv && isAuthenticated ? (
+              <button className="mt-4 text-sm font-semibold text-accent" onClick={() => void signOut()}>
+                退出登录
+              </button>
+            ) : null}
           </div>
-        ) : (
-          <div className="border-b border-line/70 bg-white/50 px-4 py-2 text-[11px] text-ink/65 backdrop-blur-xl">
-            演示模式 / 未配置 Supabase Auth
-          </div>
-        )}
-        <AnimatePresence mode="wait">
-          {activeTab === 'home' && (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1"
-            >
-              <HomeView
-                posts={feed.posts}
-                stories={feed.stories}
-                source={feed.source}
-                onToggleLike={toggleLike}
-                onToggleBookmark={toggleBookmark}
-                commentsByPost={commentsByPost}
-                commentLoadingByPost={commentLoadingByPost}
-                commentSubmittingByPost={commentSubmittingByPost}
-                onLoadComments={loadComments}
-                onCreateComment={createComment}
-              />
-            </motion.div>
-          )}
-          {activeTab === 'discover' && (
-            <motion.div
-              key="discover"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1"
-            >
-              <DiscoverView discover={feed.discover} />
-            </motion.div>
-          )}
-          {activeTab === 'profile' && (
-            <motion.div
-              key="profile"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1"
-            >
-              <ProfileView me={feed.me} portfolioImages={feed.portfolioImages} posts={feed.posts} />
-            </motion.div>
-          )}
-          {activeTab === 'messages' && (
-            <motion.div
-              key="messages"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1 flex flex-col items-center justify-center p-8 text-center"
-            >
-              <div className="ios-card mb-6 rounded-[28px] px-10 py-12 relative">
-                <span className="text-6xl opacity-60">💬</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">消息中心</h3>
-              <p className="text-sm text-ink/60">暂时还没有新的对话或通知。</p>
-              <div className="mt-8 flex gap-2">
-                 <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-line/60"></div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-line/60"></div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </aside>
 
-        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
-
-        <AnimatePresence>
-          {showCreate && (
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-0 z-[60]"
-            >
-              <CreateView
-                onClose={() => setShowCreate(false)}
-                me={feed.me}
-                isSubmitting={isSubmitting}
-                onSubmit={handleCreatePost}
+        <div className="ios-shell feed-frame relative flex min-h-[100dvh] w-full flex-col overflow-hidden rounded-[36px] border border-white/60 lg:min-h-[880px] lg:rounded-[32px]">
+          <div className="space-y-3 border-b border-line/70 bg-white/42 px-4 py-3 backdrop-blur-xl">
+            {error ? (
+              <StateCard
+                compact
+                tone="error"
+                eyebrow="Sync Error"
+                title="内容流暂时没有同步完成"
+                description={error}
+                actionLabel="重新加载"
+                onAction={() => void reload()}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ) : null}
+            {successMessage ? (
+              <StateCard
+                compact
+                tone="success"
+                eyebrow="Flow Updated"
+                title="刚才的操作已经生效"
+                description={successMessage}
+                actionLabel="知道了"
+                onAction={dismissSuccessMessage}
+              />
+            ) : null}
+            {hasSupabaseClientEnv && isAuthenticated ? (
+              <div className="flex items-center justify-between px-1 text-[11px] text-ink/70">
+                <span className="truncate">{session?.user.email}</span>
+                <button className="font-semibold text-accent" onClick={() => void signOut()}>
+                  退出登录
+                </button>
+              </div>
+            ) : (
+              <div className="px-1 text-[11px] text-ink/65">演示模式 / 未配置 Supabase Auth</div>
+            )}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {activeTab === 'home' && (
+              <motion.div
+                key="home"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1"
+              >
+                <HomeView
+                  posts={feed.posts}
+                  stories={feed.stories}
+                  source={feed.source}
+                  onToggleLike={toggleLike}
+                  onToggleBookmark={toggleBookmark}
+                  commentsByPost={commentsByPost}
+                  commentLoadingByPost={commentLoadingByPost}
+                  commentSubmittingByPost={commentSubmittingByPost}
+                  commentErrorByPost={commentErrorByPost}
+                  onLoadComments={loadComments}
+                  onCreateComment={createComment}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'discover' && (
+              <motion.div
+                key="discover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1"
+              >
+                <DiscoverView discover={feed.discover} />
+              </motion.div>
+            )}
+            {activeTab === 'profile' && (
+              <motion.div
+                key="profile"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1"
+              >
+                <ProfileView me={feed.me} portfolioImages={feed.portfolioImages} posts={feed.posts} />
+              </motion.div>
+            )}
+            {activeTab === 'messages' && (
+              <motion.div
+                key="messages"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-1 flex-col items-center justify-center p-8 text-center"
+              >
+                <div className="w-full max-w-[440px]">
+                  <StateCard
+                    tone="empty"
+                    eyebrow="Message Hub"
+                    title="消息中心还很安静"
+                    description="点赞、评论和系统通知会在这里逐渐汇聚，后续也可以继续扩展私信和未读角标。"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+
+          <AnimatePresence>
+            {showCreate && (
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed inset-0 z-[60]"
+              >
+                <CreateView
+                  onClose={() => setShowCreate(false)}
+                  me={feed.me}
+                  isSubmitting={isSubmitting}
+                  onSubmit={handleCreatePost}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <aside className="hidden lg:flex lg:flex-col lg:gap-4">
+          <div className="rail-card sticky top-6 rounded-[28px] p-5">
+            <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/44">
+              <Sparkles size={14} />
+              Hot Signals
+            </div>
+            <div className="mt-4 space-y-3">
+              <div className="ios-panel rounded-[20px] p-4">
+                <div className="text-sm font-semibold text-ink">热门话题</div>
+                <div className="mt-2 space-y-2 text-sm text-ink/62">
+                  <div>#design-system</div>
+                  <div>#product-thinking</div>
+                  <div>#creator-economy</div>
+                </div>
+              </div>
+              <div className="ios-panel rounded-[20px] p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <Bell size={15} />
+                  通知摘要
+                </div>
+                <p className="mt-2 text-sm leading-6 text-ink/65">
+                  点赞、评论和收藏会在这里形成实时互动回路，适合作为社交系统面试演示区。
+                </p>
+              </div>
+              <div className="ios-panel rounded-[20px] p-4">
+                <div className="text-sm font-semibold text-ink">系统指标</div>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Posts</div>
+                    <div className="mt-1 text-2xl font-semibold text-ink">{feed.posts.length}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Stories</div>
+                    <div className="mt-1 text-2xl font-semibold text-ink">{feed.stories.length}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

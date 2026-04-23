@@ -28,6 +28,7 @@ export interface Post {
   content: string;
   image?: string;
   images?: string[];
+  media?: PostImage[];
   timestamp: string;
   createdAt: string;
   likes: number;
@@ -47,6 +48,27 @@ export interface PostComment {
   content: string;
   createdAt: string;
   timestamp: string;
+}
+
+export interface PostImage {
+  id?: string;
+  url: string;
+  storagePath?: string;
+  width?: number;
+  height?: number;
+  sortOrder: number;
+  isCover: boolean;
+}
+
+export interface PendingUploadImage {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  dataUrl: string;
+  width: number;
+  height: number;
+  isCover: boolean;
 }
 
 export interface GalleryCard {
@@ -81,6 +103,9 @@ export interface FeedData {
 export interface CreatePostInput {
   content: string;
   image?: string;
+  images?: string[];
+  media?: PostImage[];
+  localImages?: PendingUploadImage[];
   type?: PostType;
   visibility: PostVisibility;
   location?: string;
@@ -106,6 +131,16 @@ export interface PostBookmarkResult {
 export interface CreateCommentInput {
   content: string;
 }
+
+export interface UploadImagePayload {
+  fileName: string;
+  mimeType: string;
+  dataUrl: string;
+  width?: number;
+  height?: number;
+}
+
+export interface UploadedImageAsset extends PostImage {}
 
 export interface AuthFormState {
   email: string;

@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from 'react';
-import { Search, Bell, X } from 'lucide-react';
+import { Search, Bell, X, Sparkles, Users } from 'lucide-react';
 import type { Post } from '../types';
 
 interface TopBarProps {
@@ -10,6 +10,7 @@ interface TopBarProps {
 export default function TopBar({ source, posts }: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
+  const [feedView, setFeedView] = useState<'for-you' | 'following'>('for-you');
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
 
@@ -47,13 +48,18 @@ export default function TopBar({ source, posts }: TopBarProps) {
   );
 
   return (
-    <header className="sticky top-0 w-full z-40 bg-white/55 backdrop-blur-2xl border-b border-line/70 flex flex-col">
-      <div className="flex justify-between items-center px-6 pt-5 pb-3">
-        <div>
-          <div className="section-label">For You</div>
-          <h1 className="mt-1 text-[30px] leading-none font-semibold text-ink">Pulse</h1>
+    <header className="sticky top-0 w-full z-40 border-b border-line/70 bg-white/88 backdrop-blur-xl flex flex-col">
+      <div className="flex justify-between items-center px-5 pt-4 pb-3 lg:px-7">
+        <div className="min-w-0">
+          <div className="section-label">Social Workspace</div>
+          <div className="mt-1 flex items-center gap-3">
+            <h1 className="text-[28px] leading-none font-semibold text-ink">Pulse</h1>
+            <span className={`hidden rounded-full px-3 py-1 text-[11px] font-semibold md:inline-flex ${source === 'supabase' ? 'bg-[#e7f1ff] text-accent' : 'bg-white text-ink/60'} ios-pill`}>
+              {source === 'supabase' ? 'Live Cloud' : 'Demo Mode'}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             className="ios-pill rounded-full p-2.5 text-ink/80 hover:text-accent transition-colors"
             onClick={() => {
@@ -76,17 +82,31 @@ export default function TopBar({ source, posts }: TopBarProps) {
         </div>
       </div>
       
-      <div className="flex justify-between items-center px-6 pb-4">
-        <div className="text-sm text-ink/65">
-          今日灵感、动态与创作更新
+      <div className="flex items-center justify-between gap-3 px-5 pb-4 lg:px-7">
+        <div className="ios-panel inline-flex rounded-full p-1">
+          <button
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedView === 'for-you' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            onClick={() => setFeedView('for-you')}
+          >
+            <Sparkles size={14} />
+            推荐
+          </button>
+          <button
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedView === 'following' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            onClick={() => setFeedView('following')}
+          >
+            <Users size={14} />
+            关注
+          </button>
         </div>
-        <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${source === 'supabase' ? 'bg-[#dff0ff] text-accent' : 'bg-white text-ink/70'} ios-pill`}>
-          {source === 'supabase' ? 'Cloud Live' : 'Demo'}
-        </span>
+        <div className="text-right">
+          <div className="text-[13px] font-medium text-ink/72">今日灵感、动态与创作更新</div>
+          <div className="mt-1 text-[11px] text-ink/46">为内容消费与互动场景优化的信息流布局</div>
+        </div>
       </div>
 
       {isSearchOpen ? (
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-4 lg:px-7">
           <div className="ios-card rounded-[24px] p-4">
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
@@ -132,7 +152,7 @@ export default function TopBar({ source, posts }: TopBarProps) {
       ) : null}
 
       {isNoticeOpen ? (
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-4 lg:px-7">
           <div className="ios-card rounded-[24px] p-4">
             <div className="section-label">Notifications</div>
             <div className="mt-3 space-y-3">

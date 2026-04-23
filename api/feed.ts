@@ -26,6 +26,15 @@ interface Post {
   content: string;
   image?: string;
   images?: string[];
+  media?: Array<{
+    id?: string;
+    url: string;
+    storagePath?: string;
+    width?: number;
+    height?: number;
+    sortOrder: number;
+    isCover: boolean;
+  }>;
   timestamp: string;
   createdAt: string;
   likes: number;
@@ -84,7 +93,18 @@ interface SupabasePostRow {
   visibility: PostVisibility | null;
   location: string | null;
   tags: string[] | null;
+  post_images?: SupabasePostImageRow[] | null;
   author: SupabaseUserRow | SupabaseUserRow[] | null;
+}
+
+interface SupabasePostImageRow {
+  id: string;
+  storage_path: string;
+  public_url: string;
+  width: number | null;
+  height: number | null;
+  sort_order: number | null;
+  is_cover: boolean | null;
 }
 
 interface SupabaseIdRow {
@@ -205,13 +225,46 @@ function formatRelativeTime(dateInput: string): string {
   return target.toLocaleDateString('zh-CN');
 }
 
+function normalizeMedia(row: SupabasePostRow) {
+  const relationMedia = [...(row.post_images ?? [])]
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .map((item, index) => ({
+      id: item.id,
+      url: item.public_url,
+      storagePath: item.storage_path,
+      width: item.width ?? undefined,
+      height: item.height ?? undefined,
+      sortOrder: item.sort_order ?? index,
+      isCover: item.is_cover ?? index === 0,
+    }));
+
+  if (relationMedia.length > 0) {
+    return relationMedia;
+  }
+
+  const legacyImages = row.image_urls?.filter(Boolean) ?? [];
+  if (legacyImages.length === 0 && !row.image_url) {
+    return [];
+  }
+
+  const merged = row.image_url && !legacyImages.includes(row.image_url) ? [row.image_url, ...legacyImages] : legacyImages;
+  return merged.map((url, index) => ({
+    url,
+    sortOrder: index,
+    isCover: row.image_url ? row.image_url === url : index === 0,
+  }));
+}
+
 function normalizePost(row: SupabasePostRow, engagement?: { likedPostIds: Set<string>; bookmarkedPostIds: Set<string> }): Post {
+  const media = normalizeMedia(row);
+  const cover = media.find((item) => item.isCover) ?? media[0];
   return {
     id: row.id,
     author: normalizeAuthor(row.author),
     content: row.content,
-    image: row.image_url ?? undefined,
-    images: row.image_urls ?? undefined,
+    image: cover?.url ?? row.image_url ?? undefined,
+    images: media.length > 0 ? media.map((item) => item.url) : row.image_urls ?? undefined,
+    media: media.length > 0 ? media : undefined,
     timestamp: formatRelativeTime(row.created_at),
     createdAt: row.created_at,
     likes: row.likes_count ?? 0,
@@ -267,6 +320,29 @@ async function fetchOptionalIds(url: string, accessToken?: string) {
   }
 }
 
+async function fetchPosts(baseUrl: string, accessToken?: string) {
+  const query =
+    'id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,post_images(id,storage_path,public_url,width,height,sort_order,is_cover),author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)';
+  try {
+    return await fetchJson<SupabasePostRow[]>(
+      `${baseUrl}/posts?select=${encodeURIComponent(query)}&order=created_at.desc`,
+      undefined,
+      accessToken,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (!message.includes('post_images')) {
+      throw error;
+    }
+
+    return fetchJson<SupabasePostRow[]>(
+      `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc`,
+      undefined,
+      accessToken,
+    );
+  }
+}
+
 async function resolveActorId(accessToken?: string) {
   if (accessToken) {
     const authUser = await fetchAuthenticatedUser(accessToken);
@@ -292,11 +368,7 @@ export default async function handler(req: any, res: any) {
       fetchJson<SupabaseUserRow[]>(
         `${baseUrl}/profiles?select=id,name,username,avatar_url,bio,post_count,follower_count,following_count&order=name.asc`,
       ),
-      fetchJson<SupabasePostRow[]>(
-        `${baseUrl}/posts?select=id,content,image_url,image_urls,created_at,likes_count,comments_count,type,visibility,location,tags,author:profiles!posts_author_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc`,
-        undefined,
-        accessToken,
-      ),
+      fetchPosts(baseUrl, accessToken),
       actorId
         ? fetchOptionalIds(
             `${baseUrl}/post_likes?select=post_id&user_id=eq.${encodeURIComponent(actorId)}`,
