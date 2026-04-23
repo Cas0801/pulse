@@ -29,11 +29,38 @@ create table if not exists public.posts (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.post_likes (
+  post_id uuid not null references public.posts(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default timezone('utc', now()),
+  primary key (post_id, user_id)
+);
+
+create table if not exists public.post_bookmarks (
+  post_id uuid not null references public.posts(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default timezone('utc', now()),
+  primary key (post_id, user_id)
+);
+
+create table if not exists public.post_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.posts(id) on delete cascade,
+  author_id uuid not null references public.profiles(id) on delete cascade,
+  content text not null check (char_length(trim(content)) >= 1),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 create index if not exists idx_profiles_username on public.profiles (username);
 create index if not exists idx_posts_author_id on public.posts (author_id);
 create index if not exists idx_posts_created_at_desc on public.posts (created_at desc);
 create index if not exists idx_posts_visibility_created_at on public.posts (visibility, created_at desc);
 create index if not exists idx_posts_tags_gin on public.posts using gin (tags);
+create index if not exists idx_post_likes_user_id on public.post_likes (user_id);
+create index if not exists idx_post_bookmarks_user_id on public.post_bookmarks (user_id);
+create index if not exists idx_post_comments_post_id_created_at on public.post_comments (post_id, created_at asc);
+create index if not exists idx_post_comments_author_id on public.post_comments (author_id);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -54,6 +81,12 @@ execute function public.set_updated_at();
 drop trigger if exists trg_posts_set_updated_at on public.posts;
 create trigger trg_posts_set_updated_at
 before update on public.posts
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists trg_post_comments_set_updated_at on public.post_comments;
+create trigger trg_post_comments_set_updated_at
+before update on public.post_comments
 for each row
 execute function public.set_updated_at();
 
@@ -87,6 +120,52 @@ begin
   end if;
 
   return new;
+end;
+$$;
+
+create or replace function public.sync_post_like_count()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' then
+    update public.posts
+    set likes_count = likes_count + 1
+    where id = new.post_id;
+    return new;
+  end if;
+
+  if tg_op = 'DELETE' then
+    update public.posts
+    set likes_count = greatest(likes_count - 1, 0)
+    where id = old.post_id;
+    return old;
+  end if;
+
+  return null;
+end;
+$$;
+
+create or replace function public.sync_post_comment_count()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' then
+    update public.posts
+    set comments_count = comments_count + 1
+    where id = new.post_id;
+    return new;
+  end if;
+
+  if tg_op = 'DELETE' then
+    update public.posts
+    set comments_count = greatest(comments_count - 1, 0)
+    where id = old.post_id;
+    return old;
+  end if;
+
+  return null;
 end;
 $$;
 
@@ -138,6 +217,30 @@ after update of author_id on public.posts
 for each row
 execute function public.sync_profile_post_count();
 
+drop trigger if exists trg_post_likes_sync_count_insert on public.post_likes;
+create trigger trg_post_likes_sync_count_insert
+after insert on public.post_likes
+for each row
+execute function public.sync_post_like_count();
+
+drop trigger if exists trg_post_likes_sync_count_delete on public.post_likes;
+create trigger trg_post_likes_sync_count_delete
+after delete on public.post_likes
+for each row
+execute function public.sync_post_like_count();
+
+drop trigger if exists trg_post_comments_sync_count_insert on public.post_comments;
+create trigger trg_post_comments_sync_count_insert
+after insert on public.post_comments
+for each row
+execute function public.sync_post_comment_count();
+
+drop trigger if exists trg_post_comments_sync_count_delete on public.post_comments;
+create trigger trg_post_comments_sync_count_delete
+after delete on public.post_comments
+for each row
+execute function public.sync_post_comment_count();
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
@@ -146,6 +249,9 @@ execute function public.handle_new_user();
 
 alter table public.profiles enable row level security;
 alter table public.posts enable row level security;
+alter table public.post_likes enable row level security;
+alter table public.post_bookmarks enable row level security;
+alter table public.post_comments enable row level security;
 
 drop policy if exists "profiles are viewable by everyone" on public.profiles;
 create policy "profiles are viewable by everyone"
@@ -194,6 +300,77 @@ with check (auth.uid() = author_id);
 drop policy if exists "authenticated users can delete their own posts" on public.posts;
 create policy "authenticated users can delete their own posts"
 on public.posts
+for delete
+to authenticated
+using (auth.uid() = author_id);
+
+drop policy if exists "authenticated users can view their own likes" on public.post_likes;
+create policy "authenticated users can view their own likes"
+on public.post_likes
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "authenticated users can like posts as themselves" on public.post_likes;
+create policy "authenticated users can like posts as themselves"
+on public.post_likes
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "authenticated users can remove their own likes" on public.post_likes;
+create policy "authenticated users can remove their own likes"
+on public.post_likes
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "authenticated users can view their own bookmarks" on public.post_bookmarks;
+create policy "authenticated users can view their own bookmarks"
+on public.post_bookmarks
+for select
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "authenticated users can create their own bookmarks" on public.post_bookmarks;
+create policy "authenticated users can create their own bookmarks"
+on public.post_bookmarks
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+drop policy if exists "authenticated users can delete their own bookmarks" on public.post_bookmarks;
+create policy "authenticated users can delete their own bookmarks"
+on public.post_bookmarks
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+drop policy if exists "comments are viewable by everyone" on public.post_comments;
+create policy "comments are viewable by everyone"
+on public.post_comments
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "authenticated users can create their own comments" on public.post_comments;
+create policy "authenticated users can create their own comments"
+on public.post_comments
+for insert
+to authenticated
+with check (auth.uid() = author_id);
+
+drop policy if exists "authenticated users can update their own comments" on public.post_comments;
+create policy "authenticated users can update their own comments"
+on public.post_comments
+for update
+to authenticated
+using (auth.uid() = author_id)
+with check (auth.uid() = author_id);
+
+drop policy if exists "authenticated users can delete their own comments" on public.post_comments;
+create policy "authenticated users can delete their own comments"
+on public.post_comments
 for delete
 to authenticated
 using (auth.uid() = author_id);

@@ -34,6 +34,8 @@ interface Post {
   visibility: PostVisibility;
   location?: string;
   tags: string[];
+  viewerHasLiked?: boolean;
+  viewerHasBookmarked?: boolean;
 }
 
 interface FeedData {
@@ -83,6 +85,10 @@ interface SupabasePostRow {
   location: string | null;
   tags: string[] | null;
   author: SupabaseUserRow | SupabaseUserRow[] | null;
+}
+
+interface SupabaseIdRow {
+  post_id: string;
 }
 
 const FALLBACK_ME: User = {
@@ -199,7 +205,7 @@ function formatRelativeTime(dateInput: string): string {
   return target.toLocaleDateString('zh-CN');
 }
 
-function normalizePost(row: SupabasePostRow): Post {
+function normalizePost(row: SupabasePostRow, engagement?: { likedPostIds: Set<string>; bookmarkedPostIds: Set<string> }): Post {
   return {
     id: row.id,
     author: normalizeAuthor(row.author),
@@ -214,6 +220,8 @@ function normalizePost(row: SupabasePostRow): Post {
     visibility: row.visibility ?? 'public',
     location: row.location ?? undefined,
     tags: row.tags ?? [],
+    viewerHasLiked: engagement?.likedPostIds.has(row.id) ?? false,
+    viewerHasBookmarked: engagement?.bookmarkedPostIds.has(row.id) ?? false,
   };
 }
 
@@ -245,6 +253,29 @@ async function fetchAuthenticatedUser(accessToken: string) {
   return response.json() as Promise<{ id: string }>;
 }
 
+async function fetchOptionalIds(url: string, accessToken?: string) {
+  try {
+    return await fetchJson<SupabaseIdRow[]>(url, undefined, accessToken);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('post_likes') || message.includes('post_bookmarks')) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+async function resolveActorId(accessToken?: string) {
+  if (accessToken) {
+    const authUser = await fetchAuthenticatedUser(accessToken);
+    return authUser.id;
+  }
+
+  return process.env.SUPABASE_DEFAULT_AUTHOR_ID;
+}
+
 export default async function handler(req: any, res: any) {
   try {
     if (!hasSupabaseConfig()) {
@@ -255,8 +286,9 @@ export default async function handler(req: any, res: any) {
     const authHeader = req.headers?.authorization;
     const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
     const baseUrl = getRestBaseUrl();
+    const actorId = await resolveActorId(accessToken);
 
-    const [profiles, posts] = await Promise.all([
+    const [profiles, posts, likedRows, bookmarkedRows] = await Promise.all([
       fetchJson<SupabaseUserRow[]>(
         `${baseUrl}/profiles?select=id,name,username,avatar_url,bio,post_count,follower_count,following_count&order=name.asc`,
       ),
@@ -265,6 +297,18 @@ export default async function handler(req: any, res: any) {
         undefined,
         accessToken,
       ),
+      actorId
+        ? fetchOptionalIds(
+            `${baseUrl}/post_likes?select=post_id&user_id=eq.${encodeURIComponent(actorId)}`,
+            accessToken,
+          )
+        : Promise.resolve([]),
+      actorId
+        ? fetchOptionalIds(
+            `${baseUrl}/post_bookmarks?select=post_id&user_id=eq.${encodeURIComponent(actorId)}`,
+            accessToken,
+          )
+        : Promise.resolve([]),
     ]);
 
     let me = profiles[0] ? normalizeProfile(profiles[0]) : FALLBACK_FEED.me;
@@ -283,11 +327,16 @@ export default async function handler(req: any, res: any) {
       isMe: index === 0,
     }));
 
+    const engagement = {
+      likedPostIds: new Set(likedRows.map((row) => row.post_id)),
+      bookmarkedPostIds: new Set(bookmarkedRows.map((row) => row.post_id)),
+    };
+
     const payload: FeedData = {
       ...FALLBACK_FEED,
       me,
       stories: stories.length > 0 ? stories : FALLBACK_FEED.stories,
-      posts: posts.map(normalizePost),
+      posts: posts.map((post) => normalizePost(post, engagement)),
       source: 'supabase',
     };
 

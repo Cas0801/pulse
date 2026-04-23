@@ -1,4 +1,12 @@
-import type { CreatePostInput, FeedData, Post } from '../types';
+import type {
+  CreateCommentInput,
+  CreatePostInput,
+  FeedData,
+  Post,
+  PostBookmarkResult,
+  PostComment,
+  PostLikeResult,
+} from '../types';
 
 interface RequestOptions extends RequestInit {
   accessToken?: string | null;
@@ -30,6 +38,34 @@ export function fetchFeed(accessToken?: string | null) {
 
 export function createPost(input: CreatePostInput, accessToken?: string | null) {
   return request<Post>('/api/posts', {
+    method: 'POST',
+    body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function setPostLike(postId: string, liked: boolean, accessToken?: string | null) {
+  return request<PostLikeResult>(`/api/posts/${postId}/like`, {
+    method: liked ? 'POST' : 'DELETE',
+    accessToken,
+  });
+}
+
+export function setPostBookmark(postId: string, bookmarked: boolean, accessToken?: string | null) {
+  return request<PostBookmarkResult>(`/api/posts/${postId}/bookmark`, {
+    method: bookmarked ? 'POST' : 'DELETE',
+    accessToken,
+  });
+}
+
+export function fetchPostComments(postId: string, accessToken?: string | null) {
+  return request<PostComment[]>(`/api/posts/${postId}/comments`, {
+    accessToken,
+  });
+}
+
+export function createPostComment(postId: string, input: CreateCommentInput, accessToken?: string | null) {
+  return request<PostComment>(`/api/posts/${postId}/comments`, {
     method: 'POST',
     body: JSON.stringify(input),
     accessToken,

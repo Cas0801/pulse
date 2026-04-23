@@ -36,6 +36,17 @@ export interface Post {
   visibility: PostVisibility;
   location?: string;
   tags: string[];
+  viewerHasLiked?: boolean;
+  viewerHasBookmarked?: boolean;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  author: User;
+  content: string;
+  createdAt: string;
+  timestamp: string;
 }
 
 export interface GalleryCard {
@@ -79,6 +90,21 @@ export interface CreatePostInput {
 export interface ApiErrorPayload {
   message: string;
   details?: string;
+}
+
+export interface PostLikeResult {
+  postId: string;
+  liked: boolean;
+  likes: number;
+}
+
+export interface PostBookmarkResult {
+  postId: string;
+  bookmarked: boolean;
+}
+
+export interface CreateCommentInput {
+  content: string;
 }
 
 export interface AuthFormState {

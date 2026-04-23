@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from '../api/_lib/config';
-import { createPost, loadFeed } from '../api/_lib/supabase';
+import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike } from '../api/_lib/supabase';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -13,7 +13,7 @@ const config = getConfig();
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', config.clientOrigin ?? '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, apikey');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(204);
@@ -75,6 +75,97 @@ app.post('/api/posts', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       message: '创建帖子失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/posts/:postId/like', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setPostLike(req.params.postId, true, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '点赞失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.delete('/api/posts/:postId/like', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setPostLike(req.params.postId, false, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '取消点赞失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/posts/:postId/bookmark', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setPostBookmark(req.params.postId, true, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '收藏失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.delete('/api/posts/:postId/bookmark', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setPostBookmark(req.params.postId, false, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '取消收藏失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.get('/api/posts/:postId/comments', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const comments = await loadComments(req.params.postId, accessToken);
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({
+      message: '加载评论失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/posts/:postId/comments', async (req: Request, res: Response) => {
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+
+  if (content.length < 1) {
+    res.status(400).json({ message: '评论内容不能为空' });
+    return;
+  }
+
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const comment = await createComment(req.params.postId, content, accessToken);
+    res.status(201).json(comment);
+  } catch (error) {
+    res.status(500).json({
+      message: '发表评论失败',
       details: error instanceof Error ? error.message : 'unknown error',
     });
   }

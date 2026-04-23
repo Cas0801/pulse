@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   X,
   Edit2,
@@ -27,6 +27,36 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
   const [location, setLocation] = useState('');
   const [tags, setTags] = useState('design, visual');
   const [visibility, setVisibility] = useState<PostVisibility>('public');
+  const [category, setCategory] = useState('摄影');
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const rawDraft = localStorage.getItem('pulse-create-draft');
+    if (!rawDraft) {
+      return;
+    }
+
+    try {
+      const draft = JSON.parse(rawDraft) as {
+        content?: string;
+        image?: string;
+        location?: string;
+        tags?: string;
+        visibility?: PostVisibility;
+        category?: string;
+      };
+
+      setContent(draft.content ?? '');
+      setImage(draft.image ?? '');
+      setLocation(draft.location ?? '');
+      setTags(draft.tags ?? 'design, visual');
+      setVisibility(draft.visibility ?? 'public');
+      setCategory(draft.category ?? '摄影');
+      setNotice('已恢复上次未发布的草稿');
+    } catch {
+      localStorage.removeItem('pulse-create-draft');
+    }
+  }, []);
 
   async function handleSubmit() {
     await onSubmit({
@@ -40,11 +70,42 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
         .filter(Boolean),
       type: image.trim() ? 'standard' : 'quote',
     });
+    localStorage.removeItem('pulse-create-draft');
     setContent('');
     setImage('');
     setLocation('');
     setTags('');
+    setCategory('摄影');
     onClose();
+  }
+
+  function handleSaveDraft() {
+    localStorage.setItem(
+      'pulse-create-draft',
+      JSON.stringify({
+        content,
+        image,
+        location,
+        tags,
+        visibility,
+        category,
+      }),
+    );
+    setNotice('草稿已保存到本地浏览器');
+  }
+
+  function handleAttachCategoryTag() {
+    const normalized = category.toLowerCase();
+    const nextTags = tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    if (!nextTags.includes(normalized)) {
+      nextTags.push(normalized);
+      setTags(nextTags.join(', '));
+      setNotice(`已将 ${category} 加入标签`);
+    }
   }
 
   return (
@@ -69,6 +130,15 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-24 pt-5 space-y-6">
+        {notice ? (
+          <div className="ios-panel rounded-[20px] px-4 py-3 flex items-center justify-between gap-3">
+            <span className="text-sm text-ink/70">{notice}</span>
+            <button className="text-sm font-medium text-accent" onClick={() => setNotice(null)}>
+              关闭
+            </button>
+          </div>
+        ) : null}
+
         <section className="relative">
           <div className="ios-card w-full aspect-[4/5] overflow-hidden relative rounded-[30px]">
             <img 
@@ -140,7 +210,10 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
                 {value}
               </button>
             ))}
-            <button className="ios-pill text-ink/65 px-4 py-2 rounded-full text-[12px] font-medium flex items-center gap-1.5">
+            <button
+              className="ios-pill text-ink/65 px-4 py-2 rounded-full text-[12px] font-medium flex items-center gap-1.5"
+              onClick={handleAttachCategoryTag}
+            >
               <Plus size={12} /> 添加标签
             </button>
           </div>
@@ -162,7 +235,16 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-[12px] font-medium text-accent">摄影</span>
+              <select
+                className="bg-transparent text-[12px] font-medium text-accent outline-none"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+              >
+                <option value="摄影">摄影</option>
+                <option value="设计">设计</option>
+                <option value="旅行">旅行</option>
+                <option value="灵感">灵感</option>
+              </select>
               <ChevronRight size={14} className="opacity-40" />
             </div>
           </div>
@@ -200,11 +282,17 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit }: Crea
         </section>
 
         <div className="grid grid-cols-2 gap-3">
-          <button className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all">
+          <button
+            className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all"
+            onClick={() => setNotice('定时发布还未接真实任务调度，已为你保留入口')}
+          >
             <Calendar size={20} />
             <span className="text-[12px] font-medium leading-none">定时发布</span>
           </button>
-          <button className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all">
+          <button
+            className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all"
+            onClick={handleSaveDraft}
+          >
             <FileText size={20} />
             <span className="text-[12px] font-medium leading-none">保存草稿</span>
           </button>

@@ -28,7 +28,23 @@ export default function App() {
     signUp,
     signOut,
   } = useSupabaseAuth();
-  const { feed, isLoading, isSubmitting, error, createPost, reload } = usePulseData(session?.access_token);
+  const {
+    feed,
+    isLoading,
+    isSubmitting,
+    error,
+    createPost,
+    reload,
+    toggleLike,
+    toggleBookmark,
+    commentsByPost,
+    commentLoadingByPost,
+    commentSubmittingByPost,
+    loadComments,
+    createComment,
+  } = usePulseData(
+    session?.access_token,
+  );
 
   const handleTabChange = (tab: string) => {
     if (tab === 'create') {
@@ -110,7 +126,18 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="flex-1"
             >
-              <HomeView posts={feed.posts} stories={feed.stories} source={feed.source} />
+              <HomeView
+                posts={feed.posts}
+                stories={feed.stories}
+                source={feed.source}
+                onToggleLike={toggleLike}
+                onToggleBookmark={toggleBookmark}
+                commentsByPost={commentsByPost}
+                commentLoadingByPost={commentLoadingByPost}
+                commentSubmittingByPost={commentSubmittingByPost}
+                onLoadComments={loadComments}
+                onCreateComment={createComment}
+              />
             </motion.div>
           )}
           {activeTab === 'discover' && (
@@ -132,7 +159,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="flex-1"
             >
-              <ProfileView me={feed.me} portfolioImages={feed.portfolioImages} />
+              <ProfileView me={feed.me} portfolioImages={feed.portfolioImages} posts={feed.posts} />
             </motion.div>
           )}
           {activeTab === 'messages' && (

@@ -1,3 +1,4 @@
+import { useDeferredValue, useMemo, useState } from 'react';
 import { Search, Heart, ChevronRight } from 'lucide-react';
 import type { DiscoverData } from '../types';
 import { formatCompactCount } from '../lib/format';
@@ -7,6 +8,26 @@ interface DiscoverViewProps {
 }
 
 export default function DiscoverView({ discover }: DiscoverViewProps) {
+  const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(discover.categories[0] ?? 'FOR_YOU');
+  const [showAll, setShowAll] = useState(false);
+  const deferredQuery = useDeferredValue(query);
+
+  const filteredGalleries = useMemo(() => {
+    const keyword = deferredQuery.trim().toLowerCase();
+
+    return discover.galleries.filter((gallery) => {
+      const matchesCategory = selectedCategory === 'FOR_YOU' || gallery.category === selectedCategory;
+      const matchesKeyword =
+        keyword.length === 0 ||
+        `${gallery.title} ${gallery.category}`.toLowerCase().includes(keyword);
+
+      return matchesCategory && matchesKeyword;
+    });
+  }, [deferredQuery, discover.galleries, selectedCategory]);
+
+  const visibleGalleries = showAll ? filteredGalleries : filteredGalleries.slice(0, 3);
+
   return (
     <div className="min-h-screen bg-bg">
       <header className="sticky top-0 w-full z-40 bg-white/55 backdrop-blur-2xl border-b border-line/70 px-5 pt-5 pb-4">
@@ -17,6 +38,8 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
             className="ios-input pl-11 pr-4"
             placeholder="搜索你感兴趣的作品、主题或作者"
             type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
           />
         </div>
       </header>
@@ -26,8 +49,14 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
           {discover.categories.map((cat, i) => (
             <button
               key={cat}
+              onClick={() => {
+                setSelectedCategory(cat);
+                setShowAll(false);
+              }}
               className={`ios-pill shrink-0 px-4 py-2.5 text-[12px] font-medium whitespace-nowrap transition-colors ${
-                i === 0 ? 'bg-[#dcebff] text-accent' : 'text-ink/65 hover:text-ink'
+                selectedCategory === cat || (i === 0 && selectedCategory === discover.categories[0])
+                  ? 'bg-[#dcebff] text-accent'
+                  : 'text-ink/65 hover:text-ink'
               }`}
             >
               {cat}
@@ -67,13 +96,16 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
               <div className="section-label">Curated</div>
               <h3 className="mt-1 text-[26px] font-semibold text-ink">精选画廊</h3>
             </div>
-            <button className="flex items-center gap-1 text-[12px] font-medium text-accent">
-              全部查看 <ChevronRight size={14} />
+            <button
+              className="flex items-center gap-1 text-[12px] font-medium text-accent"
+              onClick={() => setShowAll((current) => !current)}
+            >
+              {showAll ? '收起' : '全部查看'} <ChevronRight size={14} className={`transition-transform ${showAll ? 'rotate-90' : ''}`} />
             </button>
           </div>
           
           <div className="grid grid-cols-1 gap-6">
-            {discover.galleries.map((gallery) => (
+            {visibleGalleries.map((gallery) => (
               <div key={gallery.id} className="ios-card rounded-[28px] flex flex-col group cursor-pointer overflow-hidden">
                 <div className="aspect-video overflow-hidden bg-surface-container">
                   <img 
@@ -92,6 +124,11 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
                 </div>
               </div>
             ))}
+            {visibleGalleries.length === 0 ? (
+              <div className="ios-panel rounded-[24px] px-5 py-6 text-sm text-ink/55">
+                当前筛选条件下还没有结果，试试切换分类或修改搜索词。
+              </div>
+            ) : null}
           </div>
         </section>
       </main>
