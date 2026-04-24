@@ -32,6 +32,8 @@ export default function App() {
     signOut,
   } = useSupabaseAuth();
   const {
+    feedMode,
+    setFeedMode,
     feed,
     isLoading,
     isSubmitting,
@@ -42,6 +44,7 @@ export default function App() {
     reload,
     toggleLike,
     toggleBookmark,
+    toggleFollow,
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,
@@ -194,8 +197,11 @@ export default function App() {
                   posts={feed.posts}
                   stories={feed.stories}
                   source={feed.source}
+                  feedMode={feedMode}
+                  onFeedModeChange={setFeedMode}
                   onToggleLike={toggleLike}
                   onToggleBookmark={toggleBookmark}
+                  onToggleFollow={toggleFollow}
                   commentsByPost={commentsByPost}
                   commentLoadingByPost={commentLoadingByPost}
                   commentSubmittingByPost={commentSubmittingByPost}

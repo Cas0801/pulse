@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Send, MoreHorizontal, Bookmark } from 'lucide-react';
-import { Post as PostType, PostBookmarkResult, PostComment, PostLikeResult } from '../types';
+import { Heart, MessageCircle, Send, MoreHorizontal, Bookmark, Check, UserPlus } from 'lucide-react';
+import { Post as PostType, PostBookmarkResult, PostComment, PostLikeResult, ProfileFollowResult } from '../types';
 import { formatCompactCount } from '../lib/format';
 import CommentsSheet from './CommentsSheet';
 import StateCard from './StateCard';
@@ -10,6 +10,7 @@ interface PostCardProps {
   post: PostType;
   onToggleLike?: (postId: string, nextLiked: boolean) => Promise<PostLikeResult | void> | void;
   onToggleBookmark?: (postId: string, nextBookmarked: boolean) => Promise<PostBookmarkResult | void> | void;
+  onToggleFollow?: (profileId: string, nextFollowing: boolean) => Promise<ProfileFollowResult | void> | void;
   comments?: PostComment[];
   isCommentsLoading?: boolean;
   isCommentSubmitting?: boolean;
@@ -22,6 +23,7 @@ export default function PostCard({
   post,
   onToggleLike,
   onToggleBookmark,
+  onToggleFollow,
   comments = [],
   isCommentsLoading = false,
   isCommentSubmitting = false,
@@ -33,11 +35,13 @@ export default function PostCard({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isLikeBusy, setIsLikeBusy] = useState(false);
   const [isBookmarkBusy, setIsBookmarkBusy] = useState(false);
+  const [isFollowBusy, setIsFollowBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const liked = post.viewerHasLiked ?? false;
   const saved = post.viewerHasBookmarked ?? false;
+  const following = post.author.viewerIsFollowing ?? false;
   const displayLikes = post.likes;
   const galleryImages = post.images ?? (post.image ? [post.image] : []);
 
@@ -89,6 +93,28 @@ export default function PostCard({
       });
     } finally {
       setIsBookmarkBusy(false);
+    }
+  }
+
+  async function handleToggleFollow() {
+    if (!onToggleFollow || isFollowBusy || post.author.isCurrentUser) {
+      return;
+    }
+
+    setIsFollowBusy(true);
+    try {
+      await onToggleFollow(post.author.id, !following);
+      flashFeedback({
+        tone: 'success',
+        message: following ? `已取消关注 ${post.author.name}` : `已关注 ${post.author.name}`,
+      });
+    } catch {
+      flashFeedback({
+        tone: 'error',
+        message: '关注操作暂时没有完成',
+      });
+    } finally {
+      setIsFollowBusy(false);
     }
   }
 
@@ -145,6 +171,16 @@ export default function PostCard({
               </div>
               <p className="text-[12px] text-ink/55">{post.timestamp}{post.location ? ` · ${post.location}` : ''}</p>
             </div>
+            {!post.author.isCurrentUser ? (
+              <button
+                className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${following ? 'bg-[#edf4ff] text-accent' : 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.16)]'} disabled:opacity-60`}
+                onClick={() => void handleToggleFollow()}
+                disabled={isFollowBusy}
+              >
+                {following ? <Check size={13} /> : <UserPlus size={13} />}
+                {following ? '已关注' : '关注'}
+              </button>
+            ) : null}
           </div>
           <button className="ios-pill rounded-full p-2 text-ink/60 hover:text-accent transition-colors">
             <MoreHorizontal size={14} />

@@ -1,10 +1,12 @@
 import type {
   CreateCommentInput,
   CreatePostInput,
+  FeedMode,
   FeedData,
   Post,
   PostBookmarkResult,
   PostComment,
+  ProfileFollowResult,
   PostLikeResult,
   UploadedImageAsset,
   UploadImagePayload,
@@ -32,8 +34,8 @@ async function request<T>(path: string, init?: RequestOptions): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function fetchFeed(accessToken?: string | null) {
-  return request<FeedData>('/api/feed', {
+export function fetchFeed(accessToken?: string | null, mode: FeedMode = 'for-you') {
+  return request<FeedData>(`/api/feed?mode=${encodeURIComponent(mode)}`, {
     accessToken,
   });
 }
@@ -78,6 +80,13 @@ export function createPostComment(postId: string, input: CreateCommentInput, acc
   return request<PostComment>(`/api/posts/${postId}/comments`, {
     method: 'POST',
     body: JSON.stringify(input),
+    accessToken,
+  });
+}
+
+export function setProfileFollow(profileId: string, following: boolean, accessToken?: string | null) {
+  return request<ProfileFollowResult>(`/api/profiles/${profileId}/follow`, {
+    method: following ? 'POST' : 'DELETE',
     accessToken,
   });
 }

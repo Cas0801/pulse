@@ -1,10 +1,12 @@
 import type {
   CreatePostInput,
   FeedData,
+  FeedMode,
   Post,
   PostImage,
   PostBookmarkResult,
   PostComment,
+  ProfileFollowResult,
   PostLikeResult,
   UploadedImageAsset,
   User,
@@ -56,6 +58,11 @@ interface SupabaseIdRow {
   post_id: string;
 }
 
+interface SupabaseFollowRow {
+  follower_id?: string;
+  following_id: string;
+}
+
 interface SupabaseCommentRow {
   id: string;
   post_id: string;
@@ -65,13 +72,16 @@ interface SupabaseCommentRow {
   author: SupabaseUserRow | SupabaseUserRow[] | null;
 }
 
-function normalizeProfile(profile: SupabaseUserRow): User {
+function normalizeProfile(profile: SupabaseUserRow, options?: { followingIds?: Set<string>; actorId?: string }): User {
   return {
     id: profile.id,
     name: profile.name,
     username: profile.username,
     avatar: profile.avatar_url,
     bio: profile.bio ?? undefined,
+    viewerIsFollowing:
+      profile.id === options?.actorId ? false : (options?.followingIds?.has(profile.id) ?? false),
+    isCurrentUser: profile.id === options?.actorId,
     stats: {
       posts: profile.post_count ?? 0,
       followers: profile.follower_count ?? 0,
@@ -102,14 +112,14 @@ function getStorageObjectBaseUrl() {
   return `${config.supabaseUrl}/storage/v1/object`;
 }
 
-function normalizeAuthor(author: SupabasePostRow['author']): User {
+function normalizeAuthor(author: SupabasePostRow['author'], options?: { followingIds?: Set<string>; actorId?: string }): User {
   const profile = Array.isArray(author) ? author[0] : author;
 
   if (!profile) {
     return MOCK_FEED.me;
   }
 
-  return normalizeProfile(profile);
+  return normalizeProfile(profile, options);
 }
 
 function normalizeMedia(row: SupabasePostRow): PostImage[] {
@@ -143,12 +153,16 @@ function normalizeMedia(row: SupabasePostRow): PostImage[] {
   }));
 }
 
-function normalizePost(row: SupabasePostRow, engagement?: { likedPostIds: Set<string>; bookmarkedPostIds: Set<string> }): Post {
+function normalizePost(
+  row: SupabasePostRow,
+  engagement?: { likedPostIds: Set<string>; bookmarkedPostIds: Set<string> },
+  options?: { followingIds?: Set<string>; actorId?: string },
+): Post {
   const media = normalizeMedia(row);
   const cover = media.find((item) => item.isCover) ?? media[0];
   return {
     id: row.id,
-    author: normalizeAuthor(row.author),
+    author: normalizeAuthor(row.author, options),
     content: row.content,
     image: cover?.url ?? row.image_url ?? undefined,
     images: media.length > 0 ? media.map((item) => item.url) : row.image_urls ?? undefined,
@@ -191,6 +205,10 @@ async function fetchJson<T>(url: string, init?: RequestInit, accessToken?: strin
     throw new Error(message || `Supabase request failed with ${response.status}`);
   }
 
+  if (response.status === 204) {
+    return [] as T;
+  }
+
   return response.json() as Promise<T>;
 }
 
@@ -217,6 +235,20 @@ async function fetchOptionalIds(url: string, accessToken?: string) {
     const message = error instanceof Error ? error.message : '';
 
     if (message.includes('post_likes') || message.includes('post_bookmarks')) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+async function fetchOptionalFollows(url: string, accessToken?: string) {
+  try {
+    return await fetchJson<SupabaseFollowRow[]>(url, undefined, accessToken);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('follows')) {
       return [];
     }
 
@@ -258,14 +290,20 @@ async function resolveActorId(accessToken?: string) {
   return process.env.SUPABASE_DEFAULT_AUTHOR_ID;
 }
 
-export async function loadFeed(accessToken?: string): Promise<FeedData> {
+export async function loadFeed(accessToken?: string, mode: FeedMode = 'for-you'): Promise<FeedData> {
   if (!hasSupabaseConfig()) {
-    return MOCK_FEED;
+    return {
+      ...MOCK_FEED,
+      posts:
+        mode === 'following'
+          ? MOCK_FEED.posts.filter((post) => post.author.viewerIsFollowing)
+          : MOCK_FEED.posts,
+    };
   }
 
   const baseUrl = getBaseUrl();
   const actorId = await resolveActorId(accessToken);
-  const [profiles, posts, likedRows, bookmarkedRows] = await Promise.all([
+  const [profiles, posts, likedRows, bookmarkedRows, followingRows] = await Promise.all([
     fetchJson<SupabaseUserRow[]>(
       `${baseUrl}/profiles?select=id,name,username,avatar_url,bio,post_count,follower_count,following_count&order=name.asc`,
     ),
@@ -282,35 +320,146 @@ export async function loadFeed(accessToken?: string): Promise<FeedData> {
           accessToken,
         )
       : Promise.resolve([]),
+    actorId
+      ? fetchOptionalFollows(
+          `${baseUrl}/follows?select=following_id&follower_id=eq.${encodeURIComponent(actorId)}`,
+          accessToken,
+        )
+      : Promise.resolve([]),
   ]);
 
-  let me = profiles[0] ? normalizeProfile(profiles[0]) : MOCK_FEED.me;
+  const followingIds = new Set(followingRows.map((row) => row.following_id));
+
+  let me = profiles[0] ? normalizeProfile(profiles[0], { actorId, followingIds }) : MOCK_FEED.me;
 
   if (accessToken) {
     const authUser = await fetchAuthenticatedUser(accessToken);
     const profile = profiles.find((item) => item.id === authUser.id);
     if (profile) {
-      me = normalizeProfile(profile);
+      me = normalizeProfile(profile, { actorId: authUser.id, followingIds });
     }
   }
 
-  const stories = profiles.slice(0, 4).map((profile, index) => ({
-    id: `${profile.id}-story`,
-    user: normalizeProfile(profile),
-    isMe: index === 0,
-  }));
+  const meStory = {
+    id: `${me.id}-story`,
+    user: {
+      ...me,
+      isCurrentUser: true,
+    },
+    isMe: true,
+  };
+
+  const stories = [
+    meStory,
+    ...profiles
+      .filter((profile) => profile.id !== me.id)
+      .slice(0, 3)
+      .map((profile) => ({
+        id: `${profile.id}-story`,
+        user: normalizeProfile(profile, { actorId: me.id, followingIds }),
+        isMe: false,
+      })),
+  ];
 
   const engagement = {
     likedPostIds: new Set(likedRows.map((row) => row.post_id)),
     bookmarkedPostIds: new Set(bookmarkedRows.map((row) => row.post_id)),
   };
 
+  const normalizedPosts = posts.map((post) => normalizePost(post, engagement, { actorId: me.id, followingIds }));
+  const filteredPosts =
+    mode === 'following'
+      ? normalizedPosts.filter((post) => post.author.id === me.id || followingIds.has(post.author.id))
+      : normalizedPosts;
+
   return {
     ...MOCK_FEED,
     me,
     stories: stories.length > 0 ? stories : MOCK_FEED.stories,
-    posts: posts.map((post) => normalizePost(post, engagement)),
+    posts: filteredPosts,
     source: 'supabase',
+  };
+}
+
+export async function setProfileFollow(
+  profileId: string,
+  shouldFollow: boolean,
+  accessToken?: string,
+): Promise<ProfileFollowResult> {
+  if (!hasSupabaseConfig()) {
+    const matched = Object.values(MOCK_FEED.stories).find((story) => story.user.id === profileId)?.user;
+    const followerCount = Math.max((matched?.stats?.followers ?? 0) + (shouldFollow ? 1 : -1), 0);
+    const viewerFollowingCount = Math.max((MOCK_FEED.me.stats?.following ?? 0) + (shouldFollow ? 1 : -1), 0);
+
+    return {
+      profileId,
+      following: shouldFollow,
+      followerCount,
+      viewerFollowingCount,
+    };
+  }
+
+  const actorId = await resolveActorId(accessToken);
+  if (!actorId) {
+    throw new Error('缺少用户身份，无法执行关注操作');
+  }
+
+  if (actorId === profileId) {
+    throw new Error('不能关注自己');
+  }
+
+  const baseUrl = getBaseUrl();
+
+  try {
+    if (shouldFollow) {
+      await fetchJson<unknown>(
+        `${baseUrl}/follows?on_conflict=follower_id,following_id`,
+        {
+          method: 'POST',
+          headers: {
+            Prefer: 'resolution=ignore-duplicates,return=representation',
+          },
+          body: JSON.stringify({
+            follower_id: actorId,
+            following_id: profileId,
+          }),
+        },
+        accessToken,
+      );
+    } else {
+      await fetchJson<unknown>(
+        `${baseUrl}/follows?follower_id=eq.${encodeURIComponent(actorId)}&following_id=eq.${encodeURIComponent(profileId)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Prefer: 'return=representation',
+          },
+        },
+        accessToken,
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('follows')) {
+      throw new Error('关注关系表尚未初始化，请先执行 supabase/follows.sql');
+    }
+    throw error;
+  }
+
+  const countRows = await fetchJson<SupabaseUserRow[]>(
+    `${baseUrl}/profiles?id=in.(${encodeURIComponent(actorId)},${encodeURIComponent(profileId)})&select=id,name,username,avatar_url,bio,post_count,follower_count,following_count`,
+    undefined,
+    accessToken,
+  );
+
+  const actorProfile = countRows.find((row) => row.id === actorId);
+  const targetProfile = countRows.find((row) => row.id === profileId);
+
+  return {
+    profileId,
+    following: shouldFollow,
+    followerCount: targetProfile?.follower_count ?? 0,
+    viewerFollowingCount: actorProfile?.following_count ?? 0,
   };
 }
 

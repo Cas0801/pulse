@@ -4,13 +4,15 @@ import {
   createPostComment as createPostCommentRequest,
   fetchFeed,
   fetchPostComments as fetchPostCommentsRequest,
+  setProfileFollow as setProfileFollowRequest,
   setPostBookmark,
   setPostLike,
   uploadPostImage,
 } from '../lib/api';
-import type { CreatePostInput, FeedData, PostComment } from '../types';
+import type { CreatePostInput, FeedData, FeedMode, PostComment } from '../types';
 
 export function usePulseData(accessToken?: string | null) {
+  const [feedMode, setFeedMode] = useState<FeedMode>('for-you');
   const [feed, setFeed] = useState<FeedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +30,7 @@ export function usePulseData(accessToken?: string | null) {
   async function reload() {
     setIsLoading(true);
     try {
-      const nextFeed = await fetchFeed(accessToken);
+      const nextFeed = await fetchFeed(accessToken, feedMode);
       setFeed(nextFeed);
       setError(null);
     } catch (requestError) {
@@ -40,7 +42,7 @@ export function usePulseData(accessToken?: string | null) {
 
   useEffect(() => {
     void reload();
-  }, [accessToken]);
+  }, [accessToken, feedMode]);
 
   async function createPost(input: CreatePostInput) {
     setIsSubmitting(true);
@@ -246,6 +248,137 @@ export function usePulseData(accessToken?: string | null) {
     }
   }
 
+  async function toggleFollow(profileId: string, nextFollowing: boolean) {
+    const snapshot = feed;
+
+    setFeed((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const updateUser = <T extends { author?: { id: string; stats?: { followers: number } | undefined; viewerIsFollowing?: boolean }; user?: { id: string; stats?: { followers: number } | undefined; viewerIsFollowing?: boolean }; }>(
+        item: T,
+      ) => {
+        const nextItem = { ...item };
+
+        if (nextItem.author?.id === profileId) {
+          nextItem.author = {
+            ...nextItem.author,
+            viewerIsFollowing: nextFollowing,
+            stats: nextItem.author.stats
+              ? {
+                  ...nextItem.author.stats,
+                  followers: Math.max(nextItem.author.stats.followers + (nextFollowing ? 1 : -1), 0),
+                }
+              : nextItem.author.stats,
+          };
+        }
+
+        if (nextItem.user?.id === profileId) {
+          nextItem.user = {
+            ...nextItem.user,
+            viewerIsFollowing: nextFollowing,
+            stats: nextItem.user.stats
+              ? {
+                  ...nextItem.user.stats,
+                  followers: Math.max(nextItem.user.stats.followers + (nextFollowing ? 1 : -1), 0),
+                }
+              : nextItem.user.stats,
+          };
+        }
+
+        return nextItem;
+      };
+
+      const nextPosts = current.posts
+        .map((post) => updateUser(post))
+        .filter((post) => (feedMode === 'following' && !nextFollowing ? post.author.id !== profileId : true));
+
+      return {
+        ...current,
+        me: {
+          ...current.me,
+          stats: current.me.stats
+            ? {
+                ...current.me.stats,
+                following: Math.max(current.me.stats.following + (nextFollowing ? 1 : -1), 0),
+              }
+            : current.me.stats,
+        },
+        stories: current.stories.map((story) => updateUser(story)),
+        posts: nextPosts,
+      };
+    });
+
+    try {
+      const result = await setProfileFollowRequest(profileId, nextFollowing, accessToken);
+
+      setFeed((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          me: {
+            ...current.me,
+            stats: current.me.stats
+              ? {
+                  ...current.me.stats,
+                  following: result.viewerFollowingCount,
+                }
+              : current.me.stats,
+          },
+          stories: current.stories.map((story) =>
+            story.user.id === profileId
+              ? {
+                  ...story,
+                  user: {
+                    ...story.user,
+                    viewerIsFollowing: result.following,
+                    stats: story.user.stats
+                      ? {
+                          ...story.user.stats,
+                          followers: result.followerCount,
+                        }
+                      : story.user.stats,
+                  },
+                }
+              : story,
+          ),
+          posts: current.posts.map((post) =>
+            post.author.id === profileId
+              ? {
+                  ...post,
+                  author: {
+                    ...post.author,
+                    viewerIsFollowing: result.following,
+                    stats: post.author.stats
+                      ? {
+                          ...post.author.stats,
+                          followers: result.followerCount,
+                        }
+                      : post.author.stats,
+                  },
+                }
+              : post,
+          ),
+        };
+      });
+
+      if (feedMode === 'following') {
+        await reload();
+      }
+
+      return result;
+    } catch (requestError) {
+      setFeed(snapshot);
+      const message = requestError instanceof Error ? requestError.message : '关注操作失败';
+      setError(message);
+      throw requestError;
+    }
+  }
+
   async function loadComments(postId: string, force = false) {
     if (!force && commentsByPost[postId]) {
       return commentsByPost[postId];
@@ -337,6 +470,8 @@ export function usePulseData(accessToken?: string | null) {
   }
 
   return {
+    feedMode,
+    setFeedMode,
     feed,
     isLoading,
     isSubmitting,
@@ -347,6 +482,7 @@ export function usePulseData(accessToken?: string | null) {
     createPost,
     toggleLike,
     toggleBookmark,
+    toggleFollow,
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,

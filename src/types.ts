@@ -1,5 +1,6 @@
 export type PostVisibility = 'public' | 'followers' | 'private';
 export type PostType = 'standard' | 'quote' | 'gallery';
+export type FeedMode = 'for-you' | 'following';
 
 export interface UserStats {
   posts: number;
@@ -14,6 +15,8 @@ export interface User {
   avatar: string;
   bio?: string;
   stats?: UserStats;
+  viewerIsFollowing?: boolean;
+  isCurrentUser?: boolean;
 }
 
 export interface Story {
@@ -126,6 +129,13 @@ export interface PostLikeResult {
 export interface PostBookmarkResult {
   postId: string;
   bookmarked: boolean;
+}
+
+export interface ProfileFollowResult {
+  profileId: string;
+  following: boolean;
+  followerCount: number;
+  viewerFollowingCount: number;
 }
 
 export interface CreateCommentInput {

@@ -1,16 +1,17 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { Search, Bell, X, Sparkles, Users } from 'lucide-react';
-import type { Post } from '../types';
+import type { FeedMode, Post } from '../types';
 
 interface TopBarProps {
   source: 'supabase' | 'mock';
   posts: Post[];
+  feedMode: FeedMode;
+  onFeedModeChange: (mode: FeedMode) => void;
 }
 
-export default function TopBar({ source, posts }: TopBarProps) {
+export default function TopBar({ source, posts, feedMode, onFeedModeChange }: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
-  const [feedView, setFeedView] = useState<'for-you' | 'following'>('for-you');
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
 
@@ -85,15 +86,15 @@ export default function TopBar({ source, posts }: TopBarProps) {
       <div className="flex items-center justify-between gap-3 px-5 pb-4 lg:px-7">
         <div className="ios-panel inline-flex rounded-full p-1">
           <button
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedView === 'for-you' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
-            onClick={() => setFeedView('for-you')}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'for-you' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            onClick={() => onFeedModeChange('for-you')}
           >
             <Sparkles size={14} />
             推荐
           </button>
           <button
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedView === 'following' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
-            onClick={() => setFeedView('following')}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'following' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            onClick={() => onFeedModeChange('following')}
           >
             <Users size={14} />
             关注

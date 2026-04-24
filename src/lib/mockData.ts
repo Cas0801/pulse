@@ -21,6 +21,7 @@ export const MOCK_USERS: Record<string, User> = {
     username: '@elena_r',
     avatar:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBEHAelWm2mk1quCH2-jOC2zF7KoeqJ2hjZTfqUFzorCTN8JEfjvX1x4DyDmAMGdKRFDxtTkPDBVmzaVBvOFaLSMx1662hvWteMUXVTwOcb6g80eFKKtWoUVkIQF-FnWSjsBQ9ktfuBd3NKeDWT-9sXh2kdLlDWkc3zcFoQu7pNVbRQ7pbVhvGrrelo4pA3wwDpl7yP812HQznix_MDVdRkgE3SpTCshz5zUsBa8CyF0l4fhuywNtv1f-6pK78OzSmm3aop-TDu7Fdo',
+    viewerIsFollowing: true,
   },
   marcus: {
     id: 'marcus',
@@ -28,6 +29,7 @@ export const MOCK_USERS: Record<string, User> = {
     username: '@marcus_c',
     avatar:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuClYz1lSznVq9scazeeI_NdHZCRvQds0Vr3zrZmLmZWKIrk_tgjVKAJT-HxGA0Va391icGM_CS7Z7yCmjjbfXfe_uBAs0-imqHEyWO7yfFfijL0EIHel8aQciDteCieGobiZ37T4F_PTHGoDf_LBiCPwnMBmPL14obJIBe5WWoX1nRop928uV5V4SQqwxDOHRZj0Z533eQq-yFw1Yb4mA7TfbvhzUvpMnNM4Xx-QkHX4LUINLgdqN8zaLepju-SYtaSIVBPU493y1WQ',
+    viewerIsFollowing: false,
   },
   sarah: {
     id: 'sarah',
@@ -35,6 +37,7 @@ export const MOCK_USERS: Record<string, User> = {
     username: '@sarah_j',
     avatar:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBlRBdh23B4RWAWU7WyCEFIwgrkHo-jHytXYcqC_d-bhOAv9G-q9chOUegIdrUQ5mbgPtx1egIcGainFYWTCX-1JkTfGR_HJV7ZY5q5cBeIc9_KPDtHHurr8lLgX-RkoAwb1pPEkjdpW-KwHQUiYmALG9W-q6CoGjGnNKXGiDj867G1KXOSMW1RobGYUOyFgiyrHr5bbzc46DD6lB2F4hkDqSg_10eZGLyCvRH-ltgI_Hox4uTgowTP7Z3qXrETBE3OccSMJEkS6vQN',
+    viewerIsFollowing: true,
   },
 };
 

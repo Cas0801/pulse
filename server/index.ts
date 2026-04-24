@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from '../api/_lib/config';
-import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike, uploadImageAsset } from '../api/_lib/supabase';
+import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike, setProfileFollow, uploadImageAsset } from '../api/_lib/supabase';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -36,11 +36,40 @@ app.get('/api/feed', async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
     const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-    const feed = await loadFeed(accessToken);
+    const mode = req.query.mode === 'following' ? 'following' : 'for-you';
+    const feed = await loadFeed(accessToken, mode);
     res.json(feed);
   } catch (error) {
     res.status(500).json({
       message: '加载 feed 失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/profiles/:profileId/follow', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setProfileFollow(req.params.profileId, true, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '关注失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.delete('/api/profiles/:profileId/follow', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const result = await setProfileFollow(req.params.profileId, false, accessToken);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: '取消关注失败',
       details: error instanceof Error ? error.message : 'unknown error',
     });
   }
