@@ -11,9 +11,9 @@ import type {
   UploadedImageAsset,
   User,
 } from '../../src/types';
-import { MOCK_FEED } from '../../src/lib/mockData';
-import { getConfig, hasSupabaseConfig } from './config';
-import { formatRelativeTime } from './utils';
+import { MOCK_FEED } from '../../src/lib/mockData.js';
+import { getConfig, hasSupabaseConfig } from './config.js';
+import { formatRelativeTime } from './utils.js';
 
 interface SupabaseUserRow {
   id: string;

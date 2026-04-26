@@ -1,4 +1,4 @@
-import { loadFeed } from './_lib/supabase';
+import { loadFeed } from './_lib/supabase.js';
 
 export default async function handler(req: any, res: any) {
   try {
