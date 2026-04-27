@@ -1,6 +1,7 @@
 export type PostVisibility = 'public' | 'followers' | 'private';
 export type PostType = 'standard' | 'quote' | 'gallery';
 export type FeedMode = 'for-you' | 'following';
+export type NotificationType = 'post_like' | 'post_comment' | 'profile_follow';
 
 export interface UserStats {
   posts: number;
@@ -94,12 +95,26 @@ export interface DiscoverData {
   galleries: GalleryCard[];
 }
 
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  actor: User;
+  postId?: string;
+  postPreview?: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  timestamp: string;
+}
+
 export interface FeedData {
   me: User;
   stories: Story[];
   posts: Post[];
   discover: DiscoverData;
   portfolioImages: string[];
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
   source: 'supabase' | 'mock';
 }
 

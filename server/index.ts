@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from '../api/_lib/config';
-import { createComment, createPost, loadComments, loadFeed, setPostBookmark, setPostLike, setProfileFollow, uploadImageAsset } from '../api/_lib/supabase';
+import { createComment, createPost, loadComments, loadFeed, loadNotifications, markNotificationsRead, setPostBookmark, setPostLike, setProfileFollow, uploadImageAsset } from '../api/_lib/supabase';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -70,6 +70,34 @@ app.delete('/api/profiles/:profileId/follow', async (req: Request, res: Response
   } catch (error) {
     res.status(500).json({
       message: '取消关注失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.get('/api/notifications', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const payload = await loadNotifications(accessToken);
+    res.json(payload);
+  } catch (error) {
+    res.status(500).json({
+      message: '加载通知失败',
+      details: error instanceof Error ? error.message : 'unknown error',
+    });
+  }
+});
+
+app.post('/api/notifications/read-all', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const payload = await markNotificationsRead(accessToken);
+    res.json(payload);
+  } catch (error) {
+    res.status(500).json({
+      message: '更新通知状态失败',
       details: error instanceof Error ? error.message : 'unknown error',
     });
   }

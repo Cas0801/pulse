@@ -2,6 +2,8 @@ import type {
   CreatePostInput,
   FeedData,
   FeedMode,
+  NotificationItem,
+  NotificationType,
   Post,
   PostImage,
   PostBookmarkResult,
@@ -70,6 +72,19 @@ interface SupabaseCommentRow {
   created_at: string;
   updated_at: string;
   author: SupabaseUserRow | SupabaseUserRow[] | null;
+}
+
+interface SupabaseNotificationRow {
+  id: string;
+  type: NotificationType;
+  recipient_id: string;
+  actor_id: string;
+  post_id: string | null;
+  post_preview: string | null;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  actor: SupabaseUserRow | SupabaseUserRow[] | null;
 }
 
 function normalizeProfile(profile: SupabaseUserRow, options?: { followingIds?: Set<string>; actorId?: string }): User {
@@ -191,6 +206,23 @@ function normalizeComment(row: SupabaseCommentRow): PostComment {
   };
 }
 
+function normalizeNotification(
+  row: SupabaseNotificationRow,
+  options?: { followingIds?: Set<string>; actorId?: string },
+): NotificationItem {
+  return {
+    id: row.id,
+    type: row.type,
+    actor: normalizeAuthor(row.actor, options),
+    postId: row.post_id ?? undefined,
+    postPreview: row.post_preview ?? undefined,
+    message: row.message,
+    isRead: row.is_read,
+    createdAt: row.created_at,
+    timestamp: formatRelativeTime(row.created_at),
+  };
+}
+
 async function fetchJson<T>(url: string, init?: RequestInit, accessToken?: string): Promise<T> {
   const response = await fetch(url, {
     ...init,
@@ -256,6 +288,86 @@ async function fetchOptionalFollows(url: string, accessToken?: string) {
   }
 }
 
+async function fetchOptionalNotifications(url: string, accessToken?: string) {
+  try {
+    return await fetchJson<SupabaseNotificationRow[]>(url, undefined, accessToken);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('notifications')) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+async function createNotification(
+  input: {
+    type: NotificationType;
+    recipientId: string;
+    actorId: string;
+    postId?: string;
+    postPreview?: string;
+    message: string;
+  },
+  accessToken?: string,
+) {
+  if (!hasSupabaseConfig() || input.recipientId === input.actorId) {
+    return;
+  }
+
+  const baseUrl = getBaseUrl();
+
+  try {
+    await fetchJson<unknown>(
+      `${baseUrl}/notifications`,
+      {
+        method: 'POST',
+        headers: {
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          type: input.type,
+          recipient_id: input.recipientId,
+          actor_id: input.actorId,
+          post_id: input.postId ?? null,
+          post_preview: input.postPreview ?? null,
+          message: input.message,
+        }),
+      },
+      accessToken,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('notifications')) {
+      throw new Error('通知表尚未初始化，请先执行 supabase/notifications.sql');
+    }
+    throw error;
+  }
+}
+
+async function fetchPostRecipient(
+  postId: string,
+  accessToken?: string,
+): Promise<{ authorId: string; content: string } | null> {
+  const baseUrl = getBaseUrl();
+  const rows = await fetchJson<Array<{ author_id: string; content: string }>>(
+    `${baseUrl}/posts?id=eq.${encodeURIComponent(postId)}&select=author_id,content&limit=1`,
+    undefined,
+    accessToken,
+  );
+
+  if (!rows[0]) {
+    return null;
+  }
+
+  return {
+    authorId: rows[0].author_id,
+    content: rows[0].content,
+  };
+}
+
 async function fetchPosts(accessToken?: string) {
   const baseUrl = getBaseUrl();
   const query =
@@ -303,7 +415,7 @@ export async function loadFeed(accessToken?: string, mode: FeedMode = 'for-you')
 
   const baseUrl = getBaseUrl();
   const actorId = await resolveActorId(accessToken);
-  const [profiles, posts, likedRows, bookmarkedRows, followingRows] = await Promise.all([
+  const [profiles, posts, likedRows, bookmarkedRows, followingRows, notifications] = await Promise.all([
     fetchJson<SupabaseUserRow[]>(
       `${baseUrl}/profiles?select=id,name,username,avatar_url,bio,post_count,follower_count,following_count&order=name.asc`,
     ),
@@ -323,6 +435,12 @@ export async function loadFeed(accessToken?: string, mode: FeedMode = 'for-you')
     actorId
       ? fetchOptionalFollows(
           `${baseUrl}/follows?select=following_id&follower_id=eq.${encodeURIComponent(actorId)}`,
+          accessToken,
+        )
+      : Promise.resolve([]),
+    actorId
+      ? fetchOptionalNotifications(
+          `${baseUrl}/notifications?recipient_id=eq.${encodeURIComponent(actorId)}&select=id,type,recipient_id,actor_id,post_id,post_preview,message,is_read,created_at,actor:profiles!notifications_actor_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc&limit=20`,
           accessToken,
         )
       : Promise.resolve([]),
@@ -377,8 +495,82 @@ export async function loadFeed(accessToken?: string, mode: FeedMode = 'for-you')
     me,
     stories: stories.length > 0 ? stories : MOCK_FEED.stories,
     posts: filteredPosts,
+    notifications: notifications.map((item) => normalizeNotification(item, { actorId: me.id, followingIds })),
+    unreadNotificationCount: notifications.filter((item) => !item.is_read).length,
     source: 'supabase',
   };
+}
+
+export async function loadNotifications(
+  accessToken?: string,
+): Promise<{ notifications: NotificationItem[]; unreadCount: number }> {
+  if (!hasSupabaseConfig()) {
+    return {
+      notifications: MOCK_FEED.notifications,
+      unreadCount: MOCK_FEED.unreadNotificationCount,
+    };
+  }
+
+  const actorId = await resolveActorId(accessToken);
+  if (!actorId) {
+    throw new Error('缺少用户身份，无法加载通知');
+  }
+
+  const baseUrl = getBaseUrl();
+  const [rows, followingRows] = await Promise.all([
+    fetchOptionalNotifications(
+      `${baseUrl}/notifications?recipient_id=eq.${encodeURIComponent(actorId)}&select=id,type,recipient_id,actor_id,post_id,post_preview,message,is_read,created_at,actor:profiles!notifications_actor_id_fkey(id,name,username,avatar_url,bio,post_count,follower_count,following_count)&order=created_at.desc&limit=40`,
+      accessToken,
+    ),
+    fetchOptionalFollows(
+      `${baseUrl}/follows?select=following_id&follower_id=eq.${encodeURIComponent(actorId)}`,
+      accessToken,
+    ),
+  ]);
+
+  const followingIds = new Set(followingRows.map((row) => row.following_id));
+
+  return {
+    notifications: rows.map((row) => normalizeNotification(row, { actorId, followingIds })),
+    unreadCount: rows.filter((row) => !row.is_read).length,
+  };
+}
+
+export async function markNotificationsRead(accessToken?: string): Promise<{ unreadCount: number }> {
+  if (!hasSupabaseConfig()) {
+    return { unreadCount: 0 };
+  }
+
+  const actorId = await resolveActorId(accessToken);
+  if (!actorId) {
+    throw new Error('缺少用户身份，无法更新通知状态');
+  }
+
+  const baseUrl = getBaseUrl();
+
+  try {
+    await fetchJson<unknown>(
+      `${baseUrl}/notifications?recipient_id=eq.${encodeURIComponent(actorId)}&is_read=eq.false`,
+      {
+        method: 'PATCH',
+        headers: {
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          is_read: true,
+        }),
+      },
+      accessToken,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('notifications')) {
+      throw new Error('通知表尚未初始化，请先执行 supabase/notifications.sql');
+    }
+    throw error;
+  }
+
+  return { unreadCount: 0 };
 }
 
 export async function setProfileFollow(
@@ -412,7 +604,7 @@ export async function setProfileFollow(
 
   try {
     if (shouldFollow) {
-      await fetchJson<unknown>(
+      const createdRows = await fetchJson<Array<{ follower_id: string; following_id: string }>>(
         `${baseUrl}/follows?on_conflict=follower_id,following_id`,
         {
           method: 'POST',
@@ -426,6 +618,18 @@ export async function setProfileFollow(
         },
         accessToken,
       );
+
+      if (createdRows.length > 0) {
+        await createNotification(
+          {
+            type: 'profile_follow',
+            recipientId: profileId,
+            actorId,
+            message: '开始关注你，后续会优先看到你的新动态。',
+          },
+          accessToken,
+        );
+      }
     } else {
       await fetchJson<unknown>(
         `${baseUrl}/follows?follower_id=eq.${encodeURIComponent(actorId)}&following_id=eq.${encodeURIComponent(profileId)}`,
@@ -675,7 +879,7 @@ export async function setPostLike(postId: string, shouldLike: boolean, accessTok
 
   try {
     if (shouldLike) {
-      await fetchJson<unknown>(
+      const createdRows = await fetchJson<Array<{ post_id: string; user_id: string }>>(
         `${baseUrl}/post_likes?on_conflict=post_id,user_id`,
         {
           method: 'POST',
@@ -689,6 +893,23 @@ export async function setPostLike(postId: string, shouldLike: boolean, accessTok
         },
         accessToken,
       );
+
+      if (createdRows.length > 0) {
+        const recipient = await fetchPostRecipient(postId, accessToken);
+        if (recipient) {
+          await createNotification(
+            {
+              type: 'post_like',
+              recipientId: recipient.authorId,
+              actorId,
+              postId,
+              postPreview: recipient.content.slice(0, 80),
+              message: '点赞了你的动态。',
+            },
+            accessToken,
+          );
+        }
+      }
     } else {
       await fetchJson<unknown>(
         `${baseUrl}/post_likes?post_id=eq.${encodeURIComponent(postId)}&user_id=eq.${encodeURIComponent(actorId)}`,
@@ -842,6 +1063,21 @@ export async function createComment(postId: string, content: string, accessToken
     const created = rows[0];
     if (!created) {
       throw new Error('评论创建后未返回数据');
+    }
+
+    const recipient = await fetchPostRecipient(postId, accessToken);
+    if (recipient) {
+      await createNotification(
+        {
+          type: 'post_comment',
+          recipientId: recipient.authorId,
+          actorId,
+          postId,
+          postPreview: recipient.content.slice(0, 80),
+          message: `评论了你的动态：${content.slice(0, 48)}`,
+        },
+        accessToken,
+      );
     }
 
     return normalizeComment(created);

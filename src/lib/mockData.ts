@@ -1,4 +1,4 @@
-import type { DiscoverData, FeedData, Post, Story, User } from '../types';
+import type { DiscoverData, FeedData, NotificationItem, Post, Story, User } from '../types';
 
 export const ME: User = {
   id: 'me',
@@ -136,11 +136,47 @@ export const PORTFOLIO_IMAGES = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBQf8fojwgGLn1vomMInOOivPhtkWUgzLUEZFB5kL34NMz3utkINyC9GQNamsOGXS6xYkp5y0yxfBYmGG_BA9N0IYrJMAtRsBnl0l0oT1yxioG8lK2iRl7NyrZPTQLRQFQS6jCRJtd9dPlRZPa6gs-QAfCl0VuTlx4Qq3k1PKctVFMgBctW0seSKWI1UwVkOkw8msgBqU2BDD50bnhUJkNygKmYzqGYhr1h2Zzd4tiqz61TmvMTeOJEFMgkZoMcPIGoFp6GnBhSuYL2',
 ];
 
+export const NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notice-1',
+    type: 'profile_follow',
+    actor: MOCK_USERS.elena,
+    message: '开始关注你，后续会优先看到你的新动态。',
+    isRead: false,
+    createdAt: '2026-04-26T10:00:00.000Z',
+    timestamp: '2 小时前',
+  },
+  {
+    id: 'notice-2',
+    type: 'post_comment',
+    actor: MOCK_USERS.marcus,
+    postId: 'post-1',
+    postPreview: '在平凡中发现奇迹。夕阳洒在教堂上的那一刻...',
+    message: '评论了你的动态：光影层次太舒服了，像一张电影剧照。',
+    isRead: false,
+    createdAt: '2026-04-26T09:20:00.000Z',
+    timestamp: '3 小时前',
+  },
+  {
+    id: 'notice-3',
+    type: 'post_like',
+    actor: MOCK_USERS.sarah,
+    postId: 'post-2',
+    postPreview: '创新不在于与众不同，而在于以最自然的方式改变生活。',
+    message: '点赞了你的动态，正在为这条观点带来更多曝光。',
+    isRead: true,
+    createdAt: '2026-04-25T20:10:00.000Z',
+    timestamp: '昨天',
+  },
+];
+
 export const MOCK_FEED: FeedData = {
   me: ME,
   stories: STORIES,
   posts: POSTS,
   discover: DISCOVER_DATA,
   portfolioImages: PORTFOLIO_IMAGES,
+  notifications: NOTIFICATIONS,
+  unreadNotificationCount: NOTIFICATIONS.filter((item) => !item.isRead).length,
   source: 'mock',
 };

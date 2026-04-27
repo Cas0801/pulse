@@ -3,13 +3,15 @@ import {
   createPost as createPostRequest,
   createPostComment as createPostCommentRequest,
   fetchFeed,
+  fetchNotifications as fetchNotificationsRequest,
   fetchPostComments as fetchPostCommentsRequest,
+  markAllNotificationsRead as markAllNotificationsReadRequest,
   setProfileFollow as setProfileFollowRequest,
   setPostBookmark,
   setPostLike,
   uploadPostImage,
 } from '../lib/api';
-import type { CreatePostInput, FeedData, FeedMode, PostComment } from '../types';
+import type { CreatePostInput, FeedData, FeedMode, NotificationItem, PostComment } from '../types';
 
 export function usePulseData(accessToken?: string | null) {
   const [feedMode, setFeedMode] = useState<FeedMode>('for-you');
@@ -20,6 +22,9 @@ export function usePulseData(accessToken?: string | null) {
   const [commentLoadingByPost, setCommentLoadingByPost] = useState<Record<string, boolean>>({});
   const [commentSubmittingByPost, setCommentSubmittingByPost] = useState<Record<string, boolean>>({});
   const [commentErrorByPost, setCommentErrorByPost] = useState<Record<string, string | null>>({});
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -32,6 +37,8 @@ export function usePulseData(accessToken?: string | null) {
     try {
       const nextFeed = await fetchFeed(accessToken, feedMode);
       setFeed(nextFeed);
+      setNotifications(nextFeed.notifications ?? []);
+      setUnreadNotificationCount(nextFeed.unreadNotificationCount ?? 0);
       setError(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加载失败');
@@ -113,6 +120,40 @@ export function usePulseData(accessToken?: string | null) {
     }
   }
 
+  async function reloadNotifications() {
+    setIsNotificationsLoading(true);
+    try {
+      const payload = await fetchNotificationsRequest(accessToken);
+      setNotifications(payload.notifications);
+      setUnreadNotificationCount(payload.unreadCount);
+      setError(null);
+      return payload.notifications;
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : '通知加载失败';
+      setError(message);
+      throw requestError;
+    } finally {
+      setIsNotificationsLoading(false);
+    }
+  }
+
+  async function markNotificationsRead() {
+    const previous = notifications;
+    setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+    setUnreadNotificationCount(0);
+
+    try {
+      await markAllNotificationsReadRequest(accessToken);
+      setError(null);
+    } catch (requestError) {
+      setNotifications(previous);
+      setUnreadNotificationCount(previous.filter((item) => !item.isRead).length);
+      const message = requestError instanceof Error ? requestError.message : '通知状态更新失败';
+      setError(message);
+      throw requestError;
+    }
+  }
+
   async function toggleLike(postId: string, nextLiked: boolean) {
     setFeed((current) => {
       if (!current) {
@@ -179,6 +220,8 @@ export function usePulseData(accessToken?: string | null) {
       const message = requestError instanceof Error ? requestError.message : '点赞失败';
       setError(message);
       throw requestError;
+    } finally {
+      void reloadNotifications().catch(() => {});
     }
   }
 
@@ -376,6 +419,8 @@ export function usePulseData(accessToken?: string | null) {
       const message = requestError instanceof Error ? requestError.message : '关注操作失败';
       setError(message);
       throw requestError;
+    } finally {
+      void reloadNotifications().catch(() => {});
     }
   }
 
@@ -452,6 +497,7 @@ export function usePulseData(accessToken?: string | null) {
       });
       setError(null);
       setSuccessMessage('评论已发送并同步到动态');
+      void reloadNotifications().catch(() => {});
       return created;
     } catch (requestError) {
       const message = requestError instanceof Error ? requestError.message : '评论发布失败';
@@ -473,7 +519,10 @@ export function usePulseData(accessToken?: string | null) {
     feedMode,
     setFeedMode,
     feed,
+    notifications,
+    unreadNotificationCount,
     isLoading,
+    isNotificationsLoading,
     isSubmitting,
     error,
     successMessage,
@@ -483,6 +532,8 @@ export function usePulseData(accessToken?: string | null) {
     toggleLike,
     toggleBookmark,
     toggleFollow,
+    reloadNotifications,
+    markNotificationsRead,
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,

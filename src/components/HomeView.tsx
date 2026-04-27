@@ -2,7 +2,7 @@ import TopBar from './TopBar';
 import Stories from './Stories';
 import PostCard from './PostCard';
 import StateCard from './StateCard';
-import type { FeedMode, Post, PostBookmarkResult, PostComment, PostLikeResult, ProfileFollowResult, Story } from '../types';
+import type { FeedMode, NotificationItem, Post, PostBookmarkResult, PostComment, PostLikeResult, ProfileFollowResult, Story } from '../types';
 
 interface HomeViewProps {
   posts: Post[];
@@ -10,6 +10,8 @@ interface HomeViewProps {
   source: 'supabase' | 'mock';
   feedMode: FeedMode;
   onFeedModeChange: (mode: FeedMode) => void;
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
   onToggleLike?: (postId: string, nextLiked: boolean) => Promise<PostLikeResult | void> | void;
   onToggleBookmark?: (postId: string, nextBookmarked: boolean) => Promise<PostBookmarkResult | void> | void;
   onToggleFollow?: (profileId: string, nextFollowing: boolean) => Promise<ProfileFollowResult | void> | void;
@@ -27,6 +29,8 @@ export default function HomeView({
   source,
   feedMode,
   onFeedModeChange,
+  notifications,
+  unreadNotificationCount,
   onToggleLike,
   onToggleBookmark,
   onToggleFollow,
@@ -39,7 +43,14 @@ export default function HomeView({
 }: HomeViewProps) {
   return (
     <div className="flex flex-col min-h-screen bg-transparent">
-      <TopBar source={source} posts={posts} feedMode={feedMode} onFeedModeChange={onFeedModeChange} />
+      <TopBar
+        source={source}
+        posts={posts}
+        feedMode={feedMode}
+        onFeedModeChange={onFeedModeChange}
+        notifications={notifications}
+        unreadNotificationCount={unreadNotificationCount}
+      />
       <main className="flex-1 px-4 pt-4 pb-28 overflow-y-auto no-scrollbar lg:px-7 lg:pb-8">
         <Stories stories={stories} />
         <div className="mt-4 space-y-0">

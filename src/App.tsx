@@ -11,6 +11,7 @@ import DiscoverView from './components/DiscoverView';
 import ProfileView from './components/ProfileView';
 import CreateView from './components/CreateView';
 import BottomNav from './components/BottomNav';
+import NotificationsView from './components/NotificationsView';
 import { usePulseData } from './hooks/usePulseData';
 import { useSupabaseAuth } from './hooks/useSupabaseAuth';
 import AuthView from './components/AuthView';
@@ -35,8 +36,11 @@ export default function App() {
     feedMode,
     setFeedMode,
     feed,
+    notifications,
+    unreadNotificationCount,
     isLoading,
     isSubmitting,
+    isNotificationsLoading,
     error,
     successMessage,
     dismissSuccessMessage,
@@ -45,6 +49,8 @@ export default function App() {
     toggleLike,
     toggleBookmark,
     toggleFollow,
+    reloadNotifications,
+    markNotificationsRead,
     commentsByPost,
     commentLoadingByPost,
     commentSubmittingByPost,
@@ -199,6 +205,8 @@ export default function App() {
                   source={feed.source}
                   feedMode={feedMode}
                   onFeedModeChange={setFeedMode}
+                  notifications={notifications}
+                  unreadNotificationCount={unreadNotificationCount}
                   onToggleLike={toggleLike}
                   onToggleBookmark={toggleBookmark}
                   onToggleFollow={toggleFollow}
@@ -239,16 +247,15 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-1 flex-col items-center justify-center p-8 text-center"
+                className="flex-1"
               >
-                <div className="w-full max-w-[440px]">
-                  <StateCard
-                    tone="empty"
-                    eyebrow="Message Hub"
-                    title="消息中心还很安静"
-                    description="点赞、评论和系统通知会在这里逐渐汇聚，后续也可以继续扩展私信和未读角标。"
-                  />
-                </div>
+                <NotificationsView
+                  notifications={notifications}
+                  unreadCount={unreadNotificationCount}
+                  isLoading={isNotificationsLoading}
+                  onRefresh={reloadNotifications}
+                  onMarkAllRead={markNotificationsRead}
+                />
               </motion.div>
             )}
           </AnimatePresence>

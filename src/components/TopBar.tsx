@@ -1,15 +1,24 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import { Search, Bell, X, Sparkles, Users } from 'lucide-react';
-import type { FeedMode, Post } from '../types';
+import type { FeedMode, NotificationItem, Post } from '../types';
 
 interface TopBarProps {
   source: 'supabase' | 'mock';
   posts: Post[];
   feedMode: FeedMode;
   onFeedModeChange: (mode: FeedMode) => void;
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
 }
 
-export default function TopBar({ source, posts, feedMode, onFeedModeChange }: TopBarProps) {
+export default function TopBar({
+  source,
+  posts,
+  feedMode,
+  onFeedModeChange,
+  notifications,
+  unreadNotificationCount,
+}: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -37,16 +46,7 @@ export default function TopBar({ source, posts, feedMode, onFeedModeChange }: To
     });
   }, [deferredQuery, posts]);
 
-  const notifications = useMemo(
-    () =>
-      posts.slice(0, 3).map((post, index) => ({
-        id: `${post.id}-notice`,
-        title: index === 0 ? '你的内容正在获得新的关注' : `${post.author.name} 的动态值得一看`,
-        body: post.content,
-        timestamp: post.timestamp,
-      })),
-    [posts],
-  );
+  const notificationPreview = useMemo(() => notifications.slice(0, 4), [notifications]);
 
   return (
     <header className="sticky top-0 w-full z-40 border-b border-line/70 bg-white/88 backdrop-blur-xl flex flex-col">
@@ -78,7 +78,11 @@ export default function TopBar({ source, posts, feedMode, onFeedModeChange }: To
             }}
           >
             <Bell size={18} />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border border-white"></span>
+            {unreadNotificationCount > 0 ? (
+              <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {Math.min(unreadNotificationCount, 99)}
+              </span>
+            ) : null}
           </button>
         </div>
       </div>
@@ -157,17 +161,21 @@ export default function TopBar({ source, posts, feedMode, onFeedModeChange }: To
           <div className="ios-card rounded-[24px] p-4">
             <div className="section-label">Notifications</div>
             <div className="mt-3 space-y-3">
-              {notifications.map((item) => (
+              {notificationPreview.length > 0 ? notificationPreview.map((item) => (
                 <div key={item.id} className="ios-panel rounded-[20px] px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-ink">{item.title}</div>
-                      <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{item.body}</div>
+                      <div className="text-sm font-semibold text-ink">{item.actor.name}</div>
+                      <div className="mt-1 text-[13px] text-ink/60 line-clamp-2">{item.message}</div>
                     </div>
                     <span className="text-[11px] text-ink/45 whitespace-nowrap">{item.timestamp}</span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="ios-panel rounded-[20px] px-4 py-4 text-sm text-ink/55">
+                  目前还没有新的互动通知，后续的点赞、评论和关注会出现在这里。
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import type {
   CreatePostInput,
   FeedMode,
   FeedData,
+  NotificationItem,
   Post,
   PostBookmarkResult,
   PostComment,
@@ -87,6 +88,19 @@ export function createPostComment(postId: string, input: CreateCommentInput, acc
 export function setProfileFollow(profileId: string, following: boolean, accessToken?: string | null) {
   return request<ProfileFollowResult>(`/api/profiles/${profileId}/follow`, {
     method: following ? 'POST' : 'DELETE',
+    accessToken,
+  });
+}
+
+export function fetchNotifications(accessToken?: string | null) {
+  return request<{ notifications: NotificationItem[]; unreadCount: number }>('/api/notifications', {
+    accessToken,
+  });
+}
+
+export function markAllNotificationsRead(accessToken?: string | null) {
+  return request<{ unreadCount: number }>('/api/notifications/read-all', {
+    method: 'POST',
     accessToken,
   });
 }
