@@ -40,7 +40,11 @@ export function useSupabaseAuth() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const normalizedEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
     setAuthError(error?.message ?? null);
     setAuthMessage(error ? null : '登录成功。');
   }
@@ -51,8 +55,9 @@ export function useSupabaseAuth() {
       return;
     }
 
+    const normalizedEmail = input.email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signUp({
-      email: input.email,
+      email: normalizedEmail,
       password: input.password,
       options: {
         data: {

@@ -27,6 +27,16 @@
 
 前端默认运行在 `http://localhost:3000`，并通过 Vite 代理把 `/api/*` 转发到 `http://localhost:3001`。
 
+如果你要跑 iPhone / Capacitor 版本，前端 API 会优先读取：
+
+- `VITE_NATIVE_API_BASE_URL`
+
+默认建议指向线上服务，例如：
+
+- `https://pulse-ten-rho.vercel.app`
+
+这样原生 App 壳里的请求就不会错误地打到本机 `localhost`。
+
 ## Supabase Setup
 
 项目里已经附带了可直接执行的初始化脚本：
@@ -73,3 +83,61 @@
 - 没有配置 Supabase 时，系统会自动回退到 mock 数据，方便你先联调界面
 - 配置完成后，`GET /api/feed` 会从 Supabase 拉取动态内容
 - `POST /api/posts` 会把新内容写入 Supabase 的 `posts` 表
+
+## iPhone Testing
+
+项目现在已经接入 `Capacitor`，可以用原生 iOS 容器把现有 Web 应用跑到 iPhone 上。
+
+### 已完成的接入
+
+- 新增 `capacitor.config.ts`
+- 已生成原生工程目录：`ios/`
+- Web 构建产物会同步到 `ios/App/App/public`
+- 已补 `viewport-fit=cover`、iPhone 安全区适配和图片权限文案
+
+### 常用命令
+
+1. 同步最新前端代码到 iOS 工程
+   `env PATH=/opt/homebrew/bin:$PATH npm run ios:sync`
+2. 打开 Xcode 工程
+   `env PATH=/opt/homebrew/bin:$PATH npm run ios:open`
+
+### 最快真机测试流程
+
+1. 确保本机安装完整 `Xcode`，而不只是 Command Line Tools
+2. 执行：
+   `env PATH=/opt/homebrew/bin:$PATH npm run ios:sync`
+3. 执行：
+   `open ios/App/App.xcodeproj`
+4. 在 Xcode 中选择：
+   - 你的 Apple ID / Team
+   - 一个唯一的 `Bundle Identifier`
+   - 连接的 iPhone 设备
+5. 点击 `Run`
+
+### 当前这台机器的额外说明
+
+当前环境只能确认 `ios/` 工程已经成功生成和同步，但还不能直接本机编译运行，因为系统现在指向的是：
+
+- `CommandLineTools`
+
+而不是完整 Xcode。实际提示为：
+
+- `xcodebuild requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance`
+
+如果你要继续走最快路径，只需要：
+
+1. 从 App Store 安装完整 `Xcode`
+2. 首次打开 Xcode 完成许可和组件安装
+3. 如有需要执行：
+   `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+
+### TestFlight 路线
+
+如果真机测试通过，下一步就是：
+
+1. 在 Xcode 中 `Product` -> `Archive`
+2. 上传到 `App Store Connect`
+3. 在 `TestFlight` 页面邀请内部测试用户
+
+这样就能以测试版形式分发到 iPhone，而不用先正式上架 App Store。

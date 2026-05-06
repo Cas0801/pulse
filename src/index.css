@@ -26,29 +26,64 @@
 }
 
 @layer base {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+  }
+
   * {
     box-sizing: border-box;
   }
 
   html {
+    min-height: 100%;
     background:
       radial-gradient(circle at top left, rgba(22, 119, 255, 0.12), transparent 28%),
       linear-gradient(180deg, #f8fbff 0%, #edf3fb 52%, #e7eef8 100%);
+    overscroll-behavior: none;
   }
 
   body {
     @apply bg-bg text-ink font-sans antialiased;
     min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
     background:
       radial-gradient(circle at 12% 10%, rgba(22, 119, 255, 0.1), transparent 24%),
       radial-gradient(circle at 88% 12%, rgba(120, 170, 245, 0.12), transparent 20%),
       linear-gradient(180deg, #f8fbff 0%, #eef3fa 52%, #e8eef7 100%);
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body,
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  #root {
+    padding:
+      max(12px, var(--safe-top))
+      max(12px, var(--safe-right))
+      max(12px, var(--safe-bottom))
+      max(12px, var(--safe-left));
   }
 
   button,
   input,
   textarea {
     font: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 
   h1,

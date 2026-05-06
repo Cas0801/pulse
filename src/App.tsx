@@ -108,8 +108,25 @@ export default function App() {
     );
   }
 
-  if (isLoading || !feed) {
+  if (isLoading) {
     return <AppShellSkeleton />;
+  }
+
+  if (!feed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-[460px]">
+          <StateCard
+            tone="error"
+            eyebrow="App Boot"
+            title="主界面没有完成加载"
+            description={error ?? '内容流没有返回数据，请重试并查看当前网络环境。'}
+            actionLabel="重新加载"
+            onAction={() => void reload()}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

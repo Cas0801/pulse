@@ -7,11 +7,19 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "dev:api": "tsx server/index.ts",
     "build": "vite build",
+    "build:mobile": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "cap:sync": "npx cap sync",
+    "ios:add": "npx cap add ios",
+    "ios:sync": "npm run build:mobile && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/ios": "^8.3.1",
     "@google/genai": "^1.29.0",
     "@supabase/supabase-js": "^2.57.4",
     "@tailwindcss/vite": "^4.1.14",

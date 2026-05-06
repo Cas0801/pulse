@@ -1,3 +1,5 @@
+import { applyCors } from './_lib/http.js';
+
 type PostVisibility = 'public' | 'followers' | 'private';
 type PostType = 'standard' | 'quote' | 'gallery';
 
@@ -234,6 +236,10 @@ async function fetchAuthenticatedUser(accessToken: string) {
 }
 
 export default async function handler(req: any, res: any) {
+  if (applyCors(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.status(405).json({ message: 'Method Not Allowed' });
     return;

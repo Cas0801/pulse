@@ -1,3 +1,5 @@
+import { applyCors } from '../../_lib/http.js';
+
 interface BookmarkResult {
   postId: string;
   bookmarked: boolean;
@@ -64,6 +66,10 @@ async function resolveActorId(accessToken?: string) {
 }
 
 export default async function handler(req: any, res: any) {
+  if (applyCors(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST' && req.method !== 'DELETE') {
     res.status(405).json({ message: 'Method Not Allowed' });
     return;

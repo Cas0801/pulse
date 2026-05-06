@@ -85,6 +85,11 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
             placeholder="邮箱"
             type="email"
             value={form.email}
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="email"
+            inputMode="email"
+            spellCheck={false}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
           />
           <input
@@ -92,6 +97,10 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
             placeholder="密码"
             type="password"
             value={form.password}
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            spellCheck={false}
             onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
           />
 

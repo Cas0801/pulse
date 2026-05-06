@@ -1,6 +1,11 @@
 import { loadFeed } from './_lib/supabase.js';
+import { applyCors } from './_lib/http.js';
 
 export default async function handler(req: any, res: any) {
+  if (applyCors(req, res)) {
+    return;
+  }
+
   try {
     const authHeader = req.headers?.authorization;
     const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
