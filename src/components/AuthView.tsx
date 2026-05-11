@@ -36,25 +36,22 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-10">
-      <div className="ios-shell w-full max-w-[430px] rounded-[36px] border border-white/70 overflow-hidden">
+      <div className="ios-shell w-full max-w-[430px] rounded-[28px] border border-white/70 overflow-hidden">
         <div className="px-6 py-6">
           <div className="section-label">Pulse Account</div>
           <h1 className="mt-2 text-3xl font-semibold">欢迎回来</h1>
-          <p className="mt-3 text-sm text-ink/70">
-            用 Supabase Auth 管理真实身份，写入帖子时走用户级权限而不是假数据。
-          </p>
         </div>
 
         <div className="px-6 pb-2">
-        <div className="ios-panel grid grid-cols-2 rounded-[22px] p-1">
+        <div className="ios-panel grid grid-cols-2 rounded-[18px] p-1">
           <button
-            className={`rounded-[18px] py-3 text-sm font-semibold ${mode === 'signin' ? 'bg-[#dcebff] text-accent' : 'text-ink/60'}`}
+            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signin' ? 'bg-[#e8f5ef] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signin')}
           >
             登录
           </button>
           <button
-            className={`rounded-[18px] py-3 text-sm font-semibold ${mode === 'signup' ? 'bg-[#dcebff] text-accent' : 'text-ink/60'}`}
+            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signup' ? 'bg-[#e8f5ef] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signup')}
           >
             注册

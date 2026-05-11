@@ -134,16 +134,16 @@ export default function App() {
       <div className="mx-auto lg:shell-desktop">
         <aside className="hidden lg:flex lg:flex-col lg:gap-4">
           <div className="rail-card sticky top-6 rounded-[28px] p-5">
-            <div className="section-label">Workspace</div>
+            <div className="section-label">导航</div>
             <h2 className="mt-2 text-[28px] font-semibold text-ink">Pulse</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/58">一个以内容消费、互动反馈和用户关系为核心的社交系统演示。</p>
+            <p className="mt-2 text-sm leading-6 text-ink/58">发现和分享你的内容。</p>
             <div className="mt-6 space-y-2">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 return (
                   <button
                     key={item.id}
-                    className={`flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-sm font-semibold transition-colors ${isActive ? 'bg-accent text-white shadow-[0_12px_30px_rgba(22,119,255,0.2)]' : 'text-ink/65 hover:bg-white/70'}`}
+                    className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-sm font-semibold transition-colors ${isActive ? 'bg-accent text-white shadow-[0_10px_24px_rgba(16,163,127,0.18)]' : 'text-ink/65 hover:bg-white/70'}`}
                     onClick={() => handleTabChange(item.id)}
                   >
                     <item.icon size={18} />
@@ -161,8 +161,8 @@ export default function App() {
             </div>
           </div>
           <div className="rail-card rounded-[28px] p-5">
-            <div className="section-label">Account</div>
-            <div className="mt-3 text-sm text-ink/65">{hasSupabaseClientEnv && isAuthenticated ? session?.user.email : '演示模式 / 未配置 Auth'}</div>
+            <div className="section-label">账号</div>
+            <div className="mt-3 text-sm text-ink/65">{hasSupabaseClientEnv && isAuthenticated ? session?.user.email : '未登录'}</div>
             {hasSupabaseClientEnv && isAuthenticated ? (
               <button className="mt-4 text-sm font-semibold text-accent" onClick={() => void signOut()}>
                 退出登录
@@ -177,8 +177,8 @@ export default function App() {
               <StateCard
                 compact
                 tone="error"
-                eyebrow="Sync Error"
-                title="内容流暂时没有同步完成"
+                eyebrow="加载失败"
+                title="内容暂时没有加载完成"
                 description={error}
                 actionLabel="重新加载"
                 onAction={() => void reload()}
@@ -188,8 +188,8 @@ export default function App() {
               <StateCard
                 compact
                 tone="success"
-                eyebrow="Flow Updated"
-                title="刚才的操作已经生效"
+                eyebrow="操作完成"
+                title="操作已完成"
                 description={successMessage}
                 actionLabel="知道了"
                 onAction={dismissSuccessMessage}
@@ -203,7 +203,7 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="px-1 text-[11px] text-ink/65">演示模式 / 未配置 Supabase Auth</div>
+              <div className="px-1 text-[11px] text-ink/65">未登录</div>
             )}
           </div>
 
@@ -304,7 +304,7 @@ export default function App() {
           <div className="rail-card sticky top-6 rounded-[28px] p-5">
             <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/44">
               <Sparkles size={14} />
-              Hot Signals
+              热门话题
             </div>
             <div className="mt-4 space-y-3">
               <div className="ios-panel rounded-[20px] p-4">
@@ -320,12 +320,10 @@ export default function App() {
                   <Bell size={15} />
                   通知摘要
                 </div>
-                <p className="mt-2 text-sm leading-6 text-ink/65">
-                  点赞、评论和收藏会在这里形成实时互动回路，适合作为社交系统面试演示区。
-                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/65">最新消息会显示在这里。</p>
               </div>
               <div className="ios-panel rounded-[20px] p-4">
-                <div className="text-sm font-semibold text-ink">系统指标</div>
+                <div className="text-sm font-semibold text-ink">数据概览</div>
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div>
                     <div className="text-[11px] uppercase tracking-[0.16em] text-ink/42">Posts</div>

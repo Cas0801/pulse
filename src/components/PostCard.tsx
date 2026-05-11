@@ -173,7 +173,7 @@ export default function PostCard({
             </div>
             {!post.author.isCurrentUser ? (
               <button
-                className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${following ? 'bg-[#edf4ff] text-accent' : 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.16)]'} disabled:opacity-60`}
+                className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${following ? 'bg-[#e8f5ef] text-accent' : 'bg-accent text-white shadow-[0_8px_20px_rgba(16,163,127,0.16)]'} disabled:opacity-60`}
                 onClick={() => void handleToggleFollow()}
                 disabled={isFollowBusy}
               >
@@ -193,7 +193,7 @@ export default function PostCard({
               <StateCard
                 compact
                 tone={feedback.tone}
-                title={feedback.tone === 'success' ? '操作已同步' : '操作没有完成'}
+                title={feedback.tone === 'success' ? '操作成功' : '操作未完成'}
                 description={feedback.message}
               />
             </div>
@@ -245,7 +245,7 @@ export default function PostCard({
           {post.tags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.slice(0, 4).map((tag) => (
-                <span key={`${post.id}-${tag}`} className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-medium text-accent">
+                <span key={`${post.id}-${tag}`} className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-medium text-accent">
                   #{tag}
                 </span>
               ))}

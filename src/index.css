@@ -1,28 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=SF+Pro+Display:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "SF Pro Display", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
-  --font-serif: "SF Pro Display", "Inter", sans-serif;
+  --font-serif: "Inter", sans-serif;
 
-  --color-bg: #edf3fb;
-  --color-ink: #14233c;
-  --color-line: #d6e2f1;
-  --color-accent: #1677ff;
-  --color-warning: #ff9f0a;
+  --color-bg: #f7f7f2;
+  --color-ink: #202123;
+  --color-line: #e5e7eb;
+  --color-accent: #10a37f;
+  --color-warning: #d97706;
 
-  --color-primary: #1677ff;
-  --color-primary-container: #dce9ff;
+  --color-primary: #10a37f;
+  --color-primary-container: #dff4ec;
   --color-on-primary: #ffffff;
 
-  --color-surface: #f8fbff;
-  --color-surface-container: #eaf1fb;
+  --color-surface: #fbfbf8;
+  --color-surface-container: #f2f3ee;
   --color-surface-low: #ffffff;
-  --color-surface-dim: #d9e5f4;
+  --color-surface-dim: #e6e8e1;
 
-  --color-on-surface: #12315f;
-  --color-on-surface-variant: rgba(18, 49, 95, 0.65);
+  --color-on-surface: #202123;
+  --color-on-surface-variant: rgba(32, 33, 35, 0.65);
 }
 
 @layer base {
@@ -39,9 +39,7 @@
 
   html {
     min-height: 100%;
-    background:
-      radial-gradient(circle at top left, rgba(22, 119, 255, 0.12), transparent 28%),
-      linear-gradient(180deg, #f8fbff 0%, #edf3fb 52%, #e7eef8 100%);
+    background: linear-gradient(180deg, #fbfbf7 0%, #f3f4ee 100%);
     overscroll-behavior: none;
   }
 
@@ -51,9 +49,9 @@
     min-height: 100dvh;
     margin: 0;
     background:
-      radial-gradient(circle at 12% 10%, rgba(22, 119, 255, 0.1), transparent 24%),
-      radial-gradient(circle at 88% 12%, rgba(120, 170, 245, 0.12), transparent 20%),
-      linear-gradient(180deg, #f8fbff 0%, #eef3fa 52%, #e8eef7 100%);
+      radial-gradient(circle at 12% 8%, rgba(16, 163, 127, 0.06), transparent 22%),
+      radial-gradient(circle at 92% 18%, rgba(16, 163, 127, 0.04), transparent 18%),
+      linear-gradient(180deg, #fafaf7 0%, #f4f5ef 100%);
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -96,68 +94,68 @@
 
 @layer components {
   .ios-shell {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 255, 0.96));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 244, 0.98));
     box-shadow:
-      0 24px 60px rgba(28, 58, 107, 0.12),
+      0 16px 36px rgba(15, 23, 42, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(18px);
-  }
-
-  .ios-card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 251, 255, 0.96));
-    border: 1px solid rgba(214, 226, 241, 0.9);
-    box-shadow:
-      0 10px 24px rgba(31, 60, 114, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(14px);
   }
 
-  .ios-panel {
-    background: rgba(248, 251, 255, 0.9);
-    border: 1px solid rgba(214, 226, 241, 0.95);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  .ios-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 250, 246, 0.98));
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    box-shadow:
+      0 8px 20px rgba(15, 23, 42, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(12px);
   }
 
-  .ios-pill {
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(214, 226, 241, 0.95);
-    box-shadow: 0 6px 14px rgba(33, 64, 118, 0.06);
+  .ios-panel {
+    background: rgba(245, 246, 241, 0.96);
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
   }
 
+  .ios-pill {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(229, 231, 235, 0.95);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    backdrop-filter: blur(8px);
+  }
+
   .ios-input {
-    @apply w-full rounded-[18px] border px-4 py-3 text-sm text-ink outline-none transition-all;
-    background: rgba(255, 255, 255, 0.94);
-    border-color: rgba(207, 224, 251, 1);
+    @apply w-full rounded-[16px] border px-4 py-3 text-sm text-ink outline-none transition-all;
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(217, 219, 224, 1);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .ios-input:focus {
-    border-color: rgba(10, 132, 255, 0.55);
+    border-color: rgba(16, 163, 127, 0.55);
     box-shadow:
-      0 0 0 4px rgba(22, 119, 255, 0.12),
+      0 0 0 4px rgba(16, 163, 127, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.92);
   }
 
   .ios-primary-btn {
-    @apply rounded-full px-5 py-3 text-sm font-semibold text-white transition-all disabled:opacity-50;
-    background: linear-gradient(180deg, #4692ff 0%, #1677ff 100%);
+    @apply rounded-[16px] px-5 py-3 text-sm font-semibold text-white transition-all disabled:opacity-50;
+    background: linear-gradient(180deg, #18b388 0%, #10a37f 100%);
     box-shadow:
-      0 12px 24px rgba(22, 119, 255, 0.24),
+      0 10px 22px rgba(16, 163, 127, 0.22),
       inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   .ios-secondary-btn {
-    @apply rounded-full px-5 py-3 text-sm font-semibold text-ink transition-all;
-    background: rgba(255, 255, 255, 0.84);
-    border: 1px solid rgba(207, 224, 251, 1);
-    box-shadow: 0 10px 24px rgba(78, 119, 187, 0.1);
+    @apply rounded-[16px] px-5 py-3 text-sm font-semibold text-ink transition-all;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(217, 219, 224, 1);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
   }
 
   .section-label {
     @apply text-[11px] font-semibold uppercase tracking-[0.22em];
-    color: rgba(20, 35, 60, 0.42);
+    color: rgba(32, 33, 35, 0.42);
   }
 
   .shell-desktop {
@@ -169,27 +167,27 @@
   }
 
   .rail-card {
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(214, 226, 241, 0.9);
-    box-shadow: 0 10px 28px rgba(31, 60, 114, 0.07);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(229, 231, 235, 0.92);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(10px);
   }
 
   .feed-frame {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(214, 226, 241, 0.9);
-    box-shadow: 0 16px 44px rgba(31, 60, 114, 0.08);
-    backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.76);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(12px);
   }
 
   .soft-divider {
-    border-color: rgba(214, 226, 241, 0.9);
+    border-color: rgba(229, 231, 235, 0.9);
   }
 
   .pulse-skeleton {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(234, 241, 251, 0.95), rgba(221, 232, 247, 0.8));
+    background: linear-gradient(180deg, rgba(240, 242, 236, 0.98), rgba(229, 232, 223, 0.9));
   }
 
   .pulse-skeleton::after {

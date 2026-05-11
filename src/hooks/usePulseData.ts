@@ -496,7 +496,7 @@ export function usePulseData(accessToken?: string | null) {
         };
       });
       setError(null);
-      setSuccessMessage('评论已发送并同步到动态');
+      setSuccessMessage('评论已发送');
       void reloadNotifications().catch(() => {});
       return created;
     } catch (requestError) {

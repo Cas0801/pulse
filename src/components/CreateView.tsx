@@ -188,7 +188,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
           isCover: current.length === 0 ? index === 0 : item.isCover,
         }));
       });
-      setNotice(`已载入 ${nextImages.length} 张图片，发布时会自动上传到云端`);
+      setNotice(`已载入 ${nextImages.length} 张图片`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : '图片处理失败');
     }
@@ -233,7 +233,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[linear-gradient(180deg,#f7fbff_0%,#eef3fa_52%,#e7eef7_100%)]">
+    <div className="fixed inset-0 z-[60] bg-[linear-gradient(180deg,#fafaf7_0%,#f4f5ef_100%)]">
       <div className="mx-auto flex h-full max-w-[980px] flex-col overflow-hidden lg:px-4 lg:py-4">
         <div className="ios-shell flex h-full flex-col overflow-hidden rounded-none border-0 lg:rounded-[32px] lg:border lg:border-white/60">
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line/70 bg-white/88 px-5 py-4 backdrop-blur-xl lg:px-7">
@@ -242,7 +242,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                 <X size={20} />
               </button>
               <div>
-                <div className="section-label">Publisher</div>
+                <div className="section-label">发布</div>
                 <div className="mt-1 text-[24px] font-semibold text-ink">内容发布器</div>
               </div>
             </div>
@@ -277,7 +277,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                   </div>
                   <div className="mt-5">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="section-label">Content</span>
+                      <span className="section-label">内容</span>
                       <span className="text-[12px] text-ink/42">{content.trim().length} 字</span>
                     </div>
                     <textarea
@@ -290,9 +290,9 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                 </div>
 
                 <div className="ios-card rounded-[30px] p-5">
-                  <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">
-                    <ImagePlus size={14} />
-                    Media
+                    <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">
+                      <ImagePlus size={14} />
+                    图片
                   </div>
                   <div className="grid gap-3">
                     <label
@@ -311,7 +311,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                       </div>
                       <div className="mt-4 text-[15px] font-semibold text-ink">拖拽图片到这里，或点击选择本地作品</div>
                       <div className="mt-2 max-w-[360px] text-[13px] leading-6 text-ink/55">
-                        支持 JPG、PNG、WebP，单张小于 8MB，最多 6 张。发布时会自动上传到 Supabase Storage。
+                        支持 JPG、PNG、WebP，单张小于 8MB，最多 6 张。
                       </div>
                       <input
                         id="pulse-image-upload"
@@ -348,7 +348,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                                     </div>
                                   </div>
                                   {item.isCover ? (
-                                    <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-accent">封面</span>
+                                    <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent">封面</span>
                                   ) : null}
                                 </div>
                                 <div className="mt-3 flex flex-wrap gap-2">
@@ -384,7 +384,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                     ) : null}
                     <input
                       className="ios-input"
-                      placeholder="外部图片链接（可选，作为补充来源）"
+                      placeholder="外部图片链接（可选）"
                       value={image}
                       onChange={(event) => setImage(event.target.value)}
                     />
@@ -408,7 +408,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                 <div className="ios-card rounded-[30px] p-5">
                   <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">
                     <Sparkles size={14} />
-                    Publish Setup
+                    发布设置
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {(['public', 'followers', 'private'] as const).map((value) => (
@@ -416,7 +416,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                         key={value}
                         className={`rounded-full px-4 py-2 text-[12px] font-semibold ${
                           visibility === value
-                            ? 'bg-accent text-white shadow-[0_10px_20px_rgba(22,119,255,0.18)]'
+                            ? 'bg-accent text-white shadow-[0_10px_20px_rgba(16,163,127,0.18)]'
                             : 'ios-pill text-ink/65'
                         }`}
                         onClick={() => setVisibility(value)}
@@ -443,7 +443,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                     </button>
                     <button
                       className="ios-panel flex items-center justify-between rounded-[22px] px-4 py-4 text-left"
-                      onClick={() => setNotice('可以继续扩展图片上传、草稿封面和预览能力')}
+                      onClick={() => setNotice('图片与封面功能已就绪')}
                     >
                         <div className="flex items-center gap-3">
                           <div className="ios-pill rounded-2xl p-2.5 text-ink">
@@ -451,22 +451,22 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-ink">封面与媒体</p>
-                            <p className="text-[12px] text-ink/55">当前支持本地上传、设封面和作品顺序调整</p>
+                          <p className="text-[12px] text-ink/55">支持本地上传、设封面和调整顺序</p>
                           </div>
                         </div>
                         <ChevronRight size={14} className="opacity-40" />
                     </button>
                     <button
                       className="ios-panel flex items-center justify-between rounded-[22px] px-4 py-4 text-left"
-                      onClick={() => setNotice('位置、可见性与内容标签共同决定这条内容的分发策略')}
+                      onClick={() => setNotice('可以在这里设置内容的可见范围')}
                     >
                       <div className="flex items-center gap-3">
                         <div className="ios-pill rounded-2xl p-2.5 text-ink">
                           <Users size={16} />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-ink">分发与可见范围</p>
-                          <p className="text-[12px] text-ink/55">为社交系统后续推荐和权限控制预留入口</p>
+                          <p className="text-sm font-semibold text-ink">可见范围</p>
+                          <p className="text-[12px] text-ink/55">设置谁可以看到这条内容</p>
                         </div>
                       </div>
                       <ChevronRight size={14} className="opacity-40" />
@@ -494,7 +494,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     className="ios-panel rounded-[24px] p-5 flex flex-col items-center gap-2 transition-all"
-                    onClick={() => setNotice('定时发布还未接真实任务调度，已为你保留入口')}
+                    onClick={() => setNotice('定时发布功能开发中')}
                   >
                     <Calendar size={20} />
                     <span className="text-[12px] font-medium leading-none">定时发布</span>
@@ -509,10 +509,10 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                 </div>
 
                 <div className="ios-card rounded-[30px] p-5">
-                  <div className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">Quick Tips</div>
+                  <div className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">当前状态</div>
                   <div className="space-y-3 text-sm text-ink/60">
                     <div className="ios-panel rounded-[20px] px-4 py-3">当前模式：{resolvedType === 'gallery' ? '多图作品' : resolvedType === 'standard' ? '单图作品' : '纯文字观点'}</div>
-                    <div className="ios-panel rounded-[20px] px-4 py-3">已排入上传队列：{localImages.length} 张。封面图会优先成为帖子主视觉。</div>
+                    <div className="ios-panel rounded-[20px] px-4 py-3">已选择图片：{localImages.length} 张。</div>
                   </div>
                 </div>
               </div>

@@ -51,7 +51,7 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
     <div className="min-h-screen bg-transparent">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line/70 bg-white/88 px-5 py-4 backdrop-blur-xl lg:px-7">
         <div>
-          <div className="section-label">Profile Workspace</div>
+          <div className="section-label">个人主页</div>
           <div className="mt-1 text-[28px] font-semibold text-ink">用户主页</div>
         </div>
         <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
           </button>
           <button
             className="ios-pill rounded-full p-2.5 text-ink/70 hover:text-accent transition-colors"
-            onClick={() => setBanner('设置中心正在准备中，后续会接更多账号偏好项')}
+            onClick={() => setBanner('设置功能开发中')}
           >
             <Settings size={16} />
           </button>
@@ -89,13 +89,13 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[30px] font-semibold text-ink">{me.name}</h2>
-                    <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-accent">Creator</span>
+                    <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent">Creator</span>
                   </div>
                   <p className="mt-1 text-[14px] font-medium text-accent">{me.username}</p>
                   <p className="mt-4 max-w-xl text-[15px] leading-7 text-ink/74">{me.bio}</p>
                 </div>
               </div>
-              <div className="hidden rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-accent lg:inline-flex">
+              <div className="hidden rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent lg:inline-flex">
                 在线
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
             <div className="mt-6 flex gap-3">
               <button
                 className="ios-primary-btn flex-1"
-                onClick={() => setBanner('资料编辑入口已接通，当前可继续扩展成表单编辑页')}
+                onClick={() => setBanner('编辑功能开发中')}
               >
                 编辑资料
               </button>
@@ -132,11 +132,11 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
             <div className="ios-card rounded-[30px] p-5">
               <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-ink/42">
                 <Sparkles size={14} />
-                Profile Notes
+                主页信息
               </div>
               <div className="mt-4 space-y-3 text-sm text-ink/62">
-                <div className="ios-panel rounded-[20px] px-4 py-3">个人页强调身份、产出和互动沉淀，是社交产品的用户中枢。</div>
-                <div className="ios-panel rounded-[20px] px-4 py-3">收藏流、作品流和标签流拆开后，更像成熟产品里的多维个人资产展示。</div>
+                <div className="ios-panel rounded-[20px] px-4 py-3">查看作品、收藏和常用标签。</div>
+                <div className="ios-panel rounded-[20px] px-4 py-3">在这里管理你的公开主页内容。</div>
               </div>
             </div>
           </div>
@@ -145,21 +145,21 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
         <section className="mt-6">
           <div className="ios-panel grid grid-cols-3 gap-2 rounded-[26px] p-2">
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'works' ? 'bg-accent text-white' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[16px] py-3 text-sm font-semibold ${activeTab === 'works' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('works')}
             >
               <Grid3X3 size={15} />
               作品
             </button>
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'saved' ? 'bg-accent text-white' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[16px] py-3 text-sm font-semibold ${activeTab === 'saved' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('saved')}
             >
               <Bookmark size={15} />
               收藏
             </button>
             <button
-              className={`inline-flex items-center justify-center gap-2 rounded-[18px] py-3 text-sm font-semibold ${activeTab === 'tagged' ? 'bg-accent text-white' : 'text-ink/55'}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-[16px] py-3 text-sm font-semibold ${activeTab === 'tagged' ? 'bg-accent text-white' : 'text-ink/55'}`}
               onClick={() => setActiveTab('tagged')}
             >
               <Tag size={15} />
@@ -189,9 +189,9 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
                 <div className="col-span-full">
                   <StateCard
                     tone="empty"
-                    eyebrow="Works Empty"
+                    eyebrow="暂无作品"
                     title="作品展示区还是空的"
-                    description="可以先上传一组作品图，或者直接发布一条新动态，把个人主页逐步填充起来。"
+                    description="上传一组作品图，或先发布一条内容。"
                   />
                 </div>
               )}
@@ -215,9 +215,9 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
               ) : (
                 <StateCard
                   tone="empty"
-                  eyebrow="Saved Queue"
-                  title="收藏夹还没有沉淀内容"
-                  description="你收藏的内容会显示在这里，方便后续回看、整理灵感和做二次创作。"
+                  eyebrow="暂无收藏"
+                  title="收藏夹还是空的"
+                  description="你收藏的内容会显示在这里。"
                 />
               )}
             </div>
@@ -237,9 +237,9 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
                 <div className="col-span-full">
                   <StateCard
                     tone="empty"
-                    eyebrow="Tagged Stream"
-                    title="标签内容还没有形成集合"
-                    description="当动态里逐步沉淀标签后，这里会成为用户主题资产的聚合入口。"
+                    eyebrow="暂无标签"
+                    title="还没有带标签的内容"
+                    description="带标签的内容会显示在这里。"
                   />
                 </div>
               )}
@@ -254,7 +254,7 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
           url: image,
           title: `${me.name} · 作品 ${index + 1}`,
           subtitle: me.username,
-          meta: 'Portfolio Collection',
+          meta: '作品集',
         }))}
         activeIndex={viewerIndex}
         onNavigate={setViewerIndex}

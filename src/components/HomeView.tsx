@@ -56,16 +56,14 @@ export default function HomeView({
         <div className="mt-4 space-y-0">
           <div className="mb-4 flex items-end justify-between px-1">
             <div>
-              <div className="section-label">Latest Posts</div>
-              <h2 className="mt-1 text-[24px] font-semibold text-ink lg:text-[28px]">{feedMode === 'following' ? '关注动态' : '推荐内容流'}</h2>
+              <div className="section-label">最新内容</div>
+              <h2 className="mt-1 text-[24px] font-semibold text-ink lg:text-[28px]">{feedMode === 'following' ? '关注动态' : '推荐内容'}</h2>
               <p className="mt-1 text-[13px] text-ink/52">
-                {feedMode === 'following'
-                  ? '只显示你已关注创作者的最新内容，更适合沉浸式追更。'
-                  : '按时间与互动优先级混合展示，突出内容阅读与参与效率。'}
+                {feedMode === 'following' ? '查看你关注的人发布的内容。' : '发现值得浏览的新内容。'}
               </p>
             </div>
             <span className="text-[12px] font-medium text-ink/45">
-              {source === 'supabase' ? 'Supabase Cloud' : 'Mock Feed'}
+              {source === 'supabase' ? '在线' : '离线'}
             </span>
           </div>
           {posts.length > 0 ? (
@@ -88,12 +86,12 @@ export default function HomeView({
             <StateCard
               compact
               tone="empty"
-              eyebrow="Feed Empty"
-              title={feedMode === 'following' ? '关注流暂时还没有内容' : '内容流还没有启动'}
+              eyebrow="内容为空"
+              title={feedMode === 'following' ? '关注页还没有内容' : '还没有内容'}
               description={
                 feedMode === 'following'
-                  ? '先去关注几位创作者，关注页就会开始沉淀专属动态。'
-                  : '当前还没有动态内容，发布第一条内容来建立这个社交空间的初始节奏。'
+                  ? '先去关注几位创作者吧。'
+                  : '发布第一条内容试试。'
               }
             />
           )}

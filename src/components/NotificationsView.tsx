@@ -33,10 +33,10 @@ export default function NotificationsView({
     <div className="flex min-h-screen flex-col bg-transparent">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line/70 bg-white/88 px-5 py-4 backdrop-blur-xl lg:px-7">
         <div>
-          <div className="section-label">Notification Center</div>
+          <div className="section-label">消息</div>
           <div className="mt-1 text-[28px] font-semibold text-ink">消息中心</div>
           <div className="mt-1 text-[13px] text-ink/54">
-            当前还有 {unreadCount} 条未读消息，覆盖关注、点赞和评论行为。
+            当前还有 {unreadCount} 条未读消息。
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -54,9 +54,9 @@ export default function NotificationsView({
         {isLoading ? (
           <StateCard
             tone="loading"
-            eyebrow="Syncing"
-            title="正在同步通知流"
-            description="系统正在从云端拉取最新的关注、点赞和评论动态。"
+            eyebrow="加载中"
+            title="正在加载消息"
+            description="请稍候。"
           />
         ) : notifications.length > 0 ? (
           <div className="space-y-4">
@@ -67,7 +67,7 @@ export default function NotificationsView({
                 <article key={item.id} className="ios-card rounded-[28px] px-5 py-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className={`mt-1 flex h-11 w-11 items-center justify-center rounded-2xl ${item.isRead ? 'bg-[#f2f6ff] text-ink/55' : 'bg-[#e7f1ff] text-accent'}`}>
+                      <div className={`mt-1 flex h-11 w-11 items-center justify-center rounded-2xl ${item.isRead ? 'bg-[#f3f4ef] text-ink/55' : 'bg-[#e8f5ef] text-accent'}`}>
                         <Icon size={18} />
                       </div>
                       <div className="min-w-0">
@@ -107,9 +107,9 @@ export default function NotificationsView({
         ) : (
           <StateCard
             tone="empty"
-            eyebrow="Inbox Zero"
+            eyebrow="暂无消息"
             title="消息中心还没有积累动态"
-            description="当别人关注你、点赞你或评论你的内容时，通知会在这里形成清晰的互动时间线。"
+            description="有新消息时会显示在这里。"
             actionLabel="刷新一下"
             onAction={() => void onRefresh?.()}
           />

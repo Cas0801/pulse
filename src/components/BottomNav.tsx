@@ -16,7 +16,7 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
 
   return (
     <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[398px] z-50 lg:hidden">
-      <div className="ios-shell grid grid-cols-5 rounded-[28px] border border-white/75 px-2 py-2">
+      <div className="ios-shell grid grid-cols-5 rounded-[24px] border border-white/75 px-2 py-2">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         
@@ -25,7 +25,7 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="mx-1 flex items-center justify-center rounded-[20px] bg-accent text-white shadow-[0_12px_24px_rgba(10,132,255,0.35)] transition-transform active:scale-95"
+              className="mx-1 flex items-center justify-center rounded-[18px] bg-accent text-white shadow-[0_10px_22px_rgba(16,163,127,0.24)] transition-transform active:scale-95"
             >
               <Plus size={20} />
             </button>
@@ -37,7 +37,7 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`mx-1 rounded-[20px] py-2.5 flex flex-col items-center justify-center gap-1 transition-colors ${
-              isActive ? 'bg-[#dcebff] text-accent' : 'text-ink/55 hover:bg-white/60'
+              isActive ? 'bg-[#e8f5ef] text-accent' : 'text-ink/55 hover:bg-white/60'
             }`}
           >
             <tab.icon size={16} />

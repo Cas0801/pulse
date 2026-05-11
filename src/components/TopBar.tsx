@@ -52,11 +52,11 @@ export default function TopBar({
     <header className="sticky top-0 w-full z-40 border-b border-line/70 bg-white/88 backdrop-blur-xl flex flex-col">
       <div className="flex justify-between items-center px-5 pt-4 pb-3 lg:px-7">
         <div className="min-w-0">
-          <div className="section-label">Social Workspace</div>
+          <div className="section-label">首页</div>
           <div className="mt-1 flex items-center gap-3">
             <h1 className="text-[28px] leading-none font-semibold text-ink">Pulse</h1>
-            <span className={`hidden rounded-full px-3 py-1 text-[11px] font-semibold md:inline-flex ${source === 'supabase' ? 'bg-[#e7f1ff] text-accent' : 'bg-white text-ink/60'} ios-pill`}>
-              {source === 'supabase' ? 'Live Cloud' : 'Demo Mode'}
+            <span className={`hidden rounded-full px-3 py-1 text-[11px] font-semibold md:inline-flex ${source === 'supabase' ? 'bg-[#e8f5ef] text-accent' : 'bg-white text-ink/60'} ios-pill`}>
+              {source === 'supabase' ? '在线' : '离线'}
             </span>
           </div>
         </div>
@@ -90,14 +90,14 @@ export default function TopBar({
       <div className="flex items-center justify-between gap-3 px-5 pb-4 lg:px-7">
         <div className="ios-panel inline-flex rounded-full p-1">
           <button
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'for-you' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'for-you' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(16,163,127,0.18)]' : 'text-ink/55'}`}
             onClick={() => onFeedModeChange('for-you')}
           >
             <Sparkles size={14} />
             推荐
           </button>
           <button
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'following' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(22,119,255,0.2)]' : 'text-ink/55'}`}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold transition-colors ${feedMode === 'following' ? 'bg-accent text-white shadow-[0_8px_20px_rgba(16,163,127,0.18)]' : 'text-ink/55'}`}
             onClick={() => onFeedModeChange('following')}
           >
             <Users size={14} />
@@ -105,8 +105,8 @@ export default function TopBar({
           </button>
         </div>
         <div className="text-right">
-          <div className="text-[13px] font-medium text-ink/72">今日灵感、动态与创作更新</div>
-          <div className="mt-1 text-[11px] text-ink/46">为内容消费与互动场景优化的信息流布局</div>
+          <div className="text-[13px] font-medium text-ink/72">今日更新</div>
+          <div className="mt-1 text-[11px] text-ink/46">看看最新内容</div>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export default function TopBar({
       {isNoticeOpen ? (
         <div className="px-5 pb-4 lg:px-7">
           <div className="ios-card rounded-[24px] p-4">
-            <div className="section-label">Notifications</div>
+            <div className="section-label">消息</div>
             <div className="mt-3 space-y-3">
               {notificationPreview.length > 0 ? notificationPreview.map((item) => (
                 <div key={item.id} className="ios-panel rounded-[20px] px-4 py-3">
@@ -173,7 +173,7 @@ export default function TopBar({
                 </div>
               )) : (
                 <div className="ios-panel rounded-[20px] px-4 py-4 text-sm text-ink/55">
-                  目前还没有新的互动通知，后续的点赞、评论和关注会出现在这里。
+                  暂无新消息。
                 </div>
               )}
             </div>
