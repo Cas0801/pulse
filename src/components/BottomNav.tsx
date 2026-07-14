@@ -1,4 +1,5 @@
-import { Home, Compass, Plus, User as UserIcon, MessageSquare } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { PRIMARY_NAV_ITEMS } from '../lib/navigation';
 
 interface BottomNavProps {
   activeTab: string;
@@ -6,13 +7,7 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
-  const tabs = [
-    { id: 'home', icon: Home, label: '首页' },
-    { id: 'discover', icon: Compass, label: '发现' },
-    { id: 'create', icon: Plus, label: '发布', isFab: true },
-    { id: 'messages', icon: MessageSquare, label: '消息' },
-    { id: 'profile', icon: UserIcon, label: '我的' },
-  ];
+  const tabs = [PRIMARY_NAV_ITEMS[0], PRIMARY_NAV_ITEMS[1], { id: 'create' as const, icon: Plus, label: '发布', isFab: true }, PRIMARY_NAV_ITEMS[2], PRIMARY_NAV_ITEMS[3]];
 
   return (
     <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[398px] z-50 lg:hidden">
@@ -20,10 +15,11 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         
-        if (tab.isFab) {
+        if ('isFab' in tab && tab.isFab) {
           return (
             <button
               key={tab.id}
+              aria-label="发布内容"
               onClick={() => onTabChange(tab.id)}
               className="mx-1 flex items-center justify-center rounded-[18px] bg-accent text-white shadow-[0_10px_22px_rgba(16,163,127,0.24)] transition-transform active:scale-95"
             >
@@ -33,11 +29,12 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
         }
 
         return (
-          <button
-            key={tab.id}
+            <button
+              key={tab.id}
+              aria-current={isActive ? 'page' : undefined}
             onClick={() => onTabChange(tab.id)}
             className={`mx-1 rounded-[20px] py-2.5 flex flex-col items-center justify-center gap-1 transition-colors ${
-              isActive ? 'bg-[#e8f5ef] text-accent' : 'text-ink/55 hover:bg-white/60'
+              isActive ? 'bg-[#eaf2ff] text-accent' : 'text-ink/55 hover:bg-white/60'
             }`}
           >
             <tab.icon size={16} />

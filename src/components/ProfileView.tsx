@@ -89,13 +89,13 @@ export default function ProfileView({ me, portfolioImages, posts }: ProfileViewP
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[30px] font-semibold text-ink">{me.name}</h2>
-                    <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent">Creator</span>
+                    <span className="rounded-full bg-[#eaf2ff] px-3 py-1 text-[11px] font-semibold text-accent">Creator</span>
                   </div>
                   <p className="mt-1 text-[14px] font-medium text-accent">{me.username}</p>
                   <p className="mt-4 max-w-xl text-[15px] leading-7 text-ink/74">{me.bio}</p>
                 </div>
               </div>
-              <div className="hidden rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent lg:inline-flex">
+              <div className="hidden rounded-full bg-[#eaf2ff] px-3 py-1 text-[11px] font-semibold text-accent lg:inline-flex">
                 在线
               </div>
             </div>

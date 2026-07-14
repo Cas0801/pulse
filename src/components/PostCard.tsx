@@ -173,7 +173,7 @@ export default function PostCard({
             </div>
             {!post.author.isCurrentUser ? (
               <button
-                className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${following ? 'bg-[#e8f5ef] text-accent' : 'bg-accent text-white shadow-[0_8px_20px_rgba(16,163,127,0.16)]'} disabled:opacity-60`}
+                className={`ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${following ? 'bg-[#eaf2ff] text-accent' : 'bg-accent text-white shadow-[0_8px_20px_rgba(37,99,235,0.16)]'} disabled:opacity-60`}
                 onClick={() => void handleToggleFollow()}
                 disabled={isFollowBusy}
               >
@@ -182,7 +182,7 @@ export default function PostCard({
               </button>
             ) : null}
           </div>
-          <button className="ios-pill rounded-full p-2 text-ink/60 hover:text-accent transition-colors">
+          <button aria-label="更多操作" title="更多操作" className="ios-pill rounded-full p-2 text-ink/60 hover:text-accent transition-colors">
             <MoreHorizontal size={14} />
           </button>
         </div>
@@ -215,6 +215,7 @@ export default function PostCard({
                 <button
                   key={`${post.id}-gallery-${index}`}
                   className={`relative overflow-hidden rounded-[16px] bg-bg ${galleryImages.length === 3 && index === 0 ? 'col-span-2 h-64' : galleryImages.length === 1 ? 'col-span-2 h-[420px]' : 'h-48'}`}
+                  aria-label={`查看第 ${index + 1} 张图片`}
                   onClick={() => openViewer(index)}
                 >
                   <img alt={`Gallery ${index + 1}`} className="h-full w-full object-cover" src={imageUrl} referrerPolicy="no-referrer" />
@@ -228,7 +229,7 @@ export default function PostCard({
               </div>
             </div>
           ) : post.image ? (
-            <button className="block w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/80 p-1 text-left" onClick={() => openViewer(0)}>
+            <button aria-label="查看帖子图片" className="block w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/80 p-1 text-left" onClick={() => openViewer(0)}>
               <div className="mb-3 px-3 pt-3">
                 <p className="text-[16px] leading-7 text-ink">{post.content}</p>
               </div>
@@ -245,7 +246,7 @@ export default function PostCard({
           {post.tags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.slice(0, 4).map((tag) => (
-                <span key={`${post.id}-${tag}`} className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-medium text-accent">
+                <span key={`${post.id}-${tag}`} className="rounded-full bg-[#eaf2ff] px-3 py-1 text-[11px] font-medium text-accent">
                   #{tag}
                 </span>
               ))}
@@ -255,27 +256,29 @@ export default function PostCard({
 
         <div className="flex items-center justify-between border-t border-white/70 px-5 py-3.5">
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 group" onClick={() => void handleToggleLike()} disabled={isLikeBusy}>
+            <button aria-label={liked ? '取消点赞' : '点赞'} title={liked ? '取消点赞' : '点赞'} className="flex items-center gap-2 group" onClick={() => void handleToggleLike()} disabled={isLikeBusy}>
               <Heart
                 size={18}
                 className={`${liked ? 'fill-current text-accent' : 'text-ink/75'} group-hover:text-accent transition-colors`}
               />
               <span className="text-[13px] font-medium text-ink/70 group-hover:text-accent transition-colors">{formatCompactCount(displayLikes)}</span>
             </button>
-            <button className="flex items-center gap-2 group" onClick={() => void handleOpenComments()}>
+            <button aria-label="查看评论" title="查看评论" className="flex items-center gap-2 group" onClick={() => void handleOpenComments()}>
               <MessageCircle size={18} className="text-ink/75 transition-colors group-hover:text-accent" />
               <span className="text-[13px] font-medium text-ink/70 transition-colors group-hover:text-accent">{post.comments}</span>
             </button>
           </div>
           <div className="flex gap-4">
             <button
+              aria-label={saved ? '取消收藏' : '收藏'}
+              title={saved ? '取消收藏' : '收藏'}
               className={`transition-colors ${saved ? 'text-accent' : 'text-ink/55 hover:text-accent'}`}
               onClick={() => void handleToggleBookmark()}
               disabled={isBookmarkBusy}
             >
               <Bookmark size={16} />
             </button>
-            <button className={`transition-colors ${shared ? 'text-accent' : 'text-ink/55 hover:text-accent'}`} onClick={() => void handleShare()}>
+            <button aria-label="分享" title="分享" className={`transition-colors ${shared ? 'text-accent' : 'text-ink/55 hover:text-accent'}`} onClick={() => void handleShare()}>
               <Send size={16} />
             </button>
           </div>

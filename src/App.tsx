@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, Compass, Home, MessageSquare, Plus, Sparkles, User } from 'lucide-react';
+import { Bell, Plus, Sparkles } from 'lucide-react';
 import HomeView from './components/HomeView';
 import DiscoverView from './components/DiscoverView';
 import ProfileView from './components/ProfileView';
@@ -17,6 +17,7 @@ import { useSupabaseAuth } from './hooks/useSupabaseAuth';
 import AuthView from './components/AuthView';
 import StateCard from './components/StateCard';
 import AppShellSkeleton from './components/AppShellSkeleton';
+import { PRIMARY_NAV_ITEMS } from './lib/navigation';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -85,13 +86,6 @@ export default function App() {
     await createPost(input);
   }
 
-  const navItems = [
-    { id: 'home', label: '首页', icon: Home },
-    { id: 'discover', label: '发现', icon: Compass },
-    { id: 'messages', label: '消息', icon: MessageSquare },
-    { id: 'profile', label: '我的', icon: User },
-  ];
-
   if (isAuthLoading) {
     return <AppShellSkeleton />;
   }
@@ -138,11 +132,12 @@ export default function App() {
             <h2 className="mt-2 text-[28px] font-semibold text-ink">Pulse</h2>
             <p className="mt-2 text-sm leading-6 text-ink/58">发现和分享你的内容。</p>
             <div className="mt-6 space-y-2">
-              {navItems.map((item) => {
+              {PRIMARY_NAV_ITEMS.map((item) => {
                 const isActive = activeTab === item.id;
                 return (
                   <button
                     key={item.id}
+                    aria-current={isActive ? 'page' : undefined}
                     className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-sm font-semibold transition-colors ${isActive ? 'bg-accent text-white shadow-[0_10px_24px_rgba(16,163,127,0.18)]' : 'text-ink/65 hover:bg-white/70'}`}
                     onClick={() => handleTabChange(item.id)}
                   >

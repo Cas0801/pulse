@@ -20,10 +20,10 @@ const iconMap = {
 } satisfies Record<StateTone, typeof Inbox>;
 
 const accentMap: Record<StateTone, string> = {
-  empty: 'bg-[#e8f5ef] text-accent',
+  empty: 'bg-[#eaf2ff] text-accent',
   error: 'bg-[#fff1f1] text-[#db4b4b]',
-  success: 'bg-[#e8f5ef] text-[#0f8f6f]',
-  loading: 'bg-[#e8f5ef] text-accent',
+  success: 'bg-[#eaf2ff] text-[#2563eb]',
+  loading: 'bg-[#eaf2ff] text-accent',
 };
 
 export default function StateCard({

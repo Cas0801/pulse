@@ -55,7 +55,7 @@ export default function TopBar({
           <div className="section-label">首页</div>
           <div className="mt-1 flex items-center gap-3">
             <h1 className="text-[28px] leading-none font-semibold text-ink">Pulse</h1>
-            <span className={`hidden rounded-full px-3 py-1 text-[11px] font-semibold md:inline-flex ${source === 'supabase' ? 'bg-[#e8f5ef] text-accent' : 'bg-white text-ink/60'} ios-pill`}>
+            <span className={`hidden rounded-full px-3 py-1 text-[11px] font-semibold md:inline-flex ${source === 'supabase' ? 'bg-[#eaf2ff] text-accent' : 'bg-white text-ink/60'} ios-pill`}>
               {source === 'supabase' ? '在线' : '离线'}
             </span>
           </div>

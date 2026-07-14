@@ -67,7 +67,7 @@ export default function NotificationsView({
                 <article key={item.id} className="ios-card rounded-[28px] px-5 py-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className={`mt-1 flex h-11 w-11 items-center justify-center rounded-2xl ${item.isRead ? 'bg-[#f3f4ef] text-ink/55' : 'bg-[#e8f5ef] text-accent'}`}>
+                      <div className={`mt-1 flex h-11 w-11 items-center justify-center rounded-2xl ${item.isRead ? 'bg-[#f1f3f6] text-ink/55' : 'bg-[#eaf2ff] text-accent'}`}>
                         <Icon size={18} />
                       </div>
                       <div className="min-w-0">

@@ -45,13 +45,13 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
         <div className="px-6 pb-2">
         <div className="ios-panel grid grid-cols-2 rounded-[18px] p-1">
           <button
-            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signin' ? 'bg-[#e8f5ef] text-accent' : 'text-ink/60'}`}
+            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signin' ? 'bg-[#eaf2ff] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signin')}
           >
             登录
           </button>
           <button
-            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signup' ? 'bg-[#e8f5ef] text-accent' : 'text-ink/60'}`}
+            className={`rounded-[14px] py-3 text-sm font-semibold ${mode === 'signup' ? 'bg-[#eaf2ff] text-accent' : 'text-ink/60'}`}
             onClick={() => setMode('signup')}
           >
             注册
@@ -62,13 +62,17 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
         <div className="space-y-4 px-6 py-6">
           {mode === 'signup' ? (
             <>
+              <label className="sr-only" htmlFor="signup-name">姓名</label>
               <input
+                id="signup-name"
                 className="ios-input"
                 placeholder="姓名"
                 value={form.name}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
               />
+              <label className="sr-only" htmlFor="signup-username">用户名</label>
               <input
+                id="signup-username"
                 className="ios-input"
                 placeholder="用户名"
                 value={form.username}
@@ -77,7 +81,9 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
             </>
           ) : null}
 
+          <label className="sr-only" htmlFor="auth-email">邮箱</label>
           <input
+            id="auth-email"
             className="ios-input"
             placeholder="邮箱"
             type="email"
@@ -89,7 +95,9 @@ export default function AuthView({ isBusy, error, message, onSignIn, onSignUp }:
             spellCheck={false}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
           />
+          <label className="sr-only" htmlFor="auth-password">密码</label>
           <input
+            id="auth-password"
             className="ios-input"
             placeholder="密码"
             type="password"

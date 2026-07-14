@@ -40,14 +40,28 @@ function fileToPendingImage(file: File): Promise<PendingUploadImage> {
       const image = new Image();
       image.onerror = () => reject(new Error('图片预览失败'));
       image.onload = () => {
+        const maxDimension = 2400;
+        const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('图片处理失败，请重试'));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.86);
+        const optimizedSize = Math.ceil((optimizedDataUrl.length - optimizedDataUrl.indexOf(',') - 1) * 0.75);
+
         resolve({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          fileName: file.name,
-          mimeType: file.type || 'image/jpeg',
-          size: file.size,
-          dataUrl: reader.result as string,
-          width: image.naturalWidth,
-          height: image.naturalHeight,
+          fileName: file.name.replace(/\.[^.]+$/, '') + '.jpg',
+          mimeType: 'image/jpeg',
+          size: optimizedSize,
+          dataUrl: optimizedDataUrl,
+          width: canvas.width,
+          height: canvas.height,
           isCover: false,
         });
       };
@@ -238,7 +252,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
         <div className="ios-shell flex h-full flex-col overflow-hidden rounded-none border-0 lg:rounded-[32px] lg:border lg:border-white/60">
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line/70 bg-white/88 px-5 py-4 backdrop-blur-xl lg:px-7">
             <div className="flex items-center gap-4">
-              <button onClick={onClose} className="ios-pill rounded-full p-2 text-ink hover:text-accent transition-all">
+              <button aria-label="关闭发布页" title="关闭发布页" onClick={onClose} className="ios-pill rounded-full p-2 text-ink hover:text-accent transition-all">
                 <X size={20} />
               </button>
               <div>
@@ -348,7 +362,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                                     </div>
                                   </div>
                                   {item.isCover ? (
-                                    <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent">封面</span>
+                                    <span className="rounded-full bg-[#eaf2ff] px-3 py-1 text-[11px] font-semibold text-accent">封面</span>
                                   ) : null}
                                 </div>
                                 <div className="mt-3 flex flex-wrap gap-2">

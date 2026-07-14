@@ -43,7 +43,7 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
             <h1 className="text-[28px] font-semibold text-ink">发现</h1>
             <p className="mt-1 text-sm text-ink/58">浏览你感兴趣的作品与主题。</p>
           </div>
-          <div className="hidden items-center gap-2 rounded-full bg-[#e8f5ef] px-4 py-2 text-[12px] font-semibold text-accent lg:inline-flex">
+          <div className="hidden items-center gap-2 rounded-full bg-[#eaf2ff] px-4 py-2 text-[12px] font-semibold text-accent lg:inline-flex">
             <Sparkles size={14} />
             精选
           </div>
@@ -73,7 +73,7 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
             </div>
             <div className="p-6">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="rounded-full bg-[#e8f5ef] px-3 py-1 text-[11px] font-semibold text-accent">
+                <span className="rounded-full bg-[#eaf2ff] px-3 py-1 text-[11px] font-semibold text-accent">
                   {discover.hero.subtitle}
                 </span>
                 <span className="text-[11px] font-medium text-ink/42">编辑精选</span>
@@ -91,7 +91,7 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {TREND_TAGS.map((tag) => (
-                  <span key={tag} className="rounded-full bg-[#e8f5ef] px-3 py-2 text-[12px] font-medium text-accent">
+                  <span key={tag} className="rounded-full bg-[#eaf2ff] px-3 py-2 text-[12px] font-medium text-accent">
                     #{tag}
                   </span>
                 ))}
@@ -172,7 +172,7 @@ export default function DiscoverView({ discover }: DiscoverViewProps) {
                         </div>
                         <h4 className="mt-2 text-[18px] font-semibold text-ink">{gallery.title}</h4>
                       </div>
-                      <div className="inline-flex items-center gap-2 rounded-full bg-[#e8f5ef] px-3 py-2 text-[12px] font-medium text-accent">
+                      <div className="inline-flex items-center gap-2 rounded-full bg-[#eaf2ff] px-3 py-2 text-[12px] font-medium text-accent">
                         <Heart size={14} />
                         {formatCompactCount(gallery.likes)}
                       </div>
