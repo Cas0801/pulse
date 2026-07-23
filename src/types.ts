@@ -173,3 +173,23 @@ export interface AuthFormState {
   name: string;
   username: string;
 }
+
+export type AiMode = 'chat' | 'improve-post' | 'suggest-tags' | 'describe-image';
+
+export interface AiChatRequest {
+  conversationId?: string;
+  message: string;
+  mode: AiMode;
+}
+
+export interface AiMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+export interface AiChatResponse {
+  conversationId: string;
+  message: AiMessage;
+}

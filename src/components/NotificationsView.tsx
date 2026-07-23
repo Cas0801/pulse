@@ -1,4 +1,4 @@
-import { Bell, CheckCheck, Heart, MessageCircle, UserPlus } from 'lucide-react';
+import { Bell, CheckCheck, Heart, MessageCircle, Sparkles, UserPlus } from 'lucide-react';
 import type { NotificationItem } from '../types';
 import StateCard from './StateCard';
 
@@ -8,6 +8,7 @@ interface NotificationsViewProps {
   isLoading: boolean;
   onRefresh?: () => Promise<unknown> | void;
   onMarkAllRead?: () => Promise<unknown> | void;
+  onOpenAi?: () => void;
 }
 
 const toneIconMap = {
@@ -28,6 +29,7 @@ export default function NotificationsView({
   isLoading,
   onRefresh,
   onMarkAllRead,
+  onOpenAi,
 }: NotificationsViewProps) {
   return (
     <div className="flex min-h-screen flex-col bg-transparent">
@@ -40,6 +42,10 @@ export default function NotificationsView({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button className="ios-secondary-btn inline-flex items-center gap-2 px-4 py-2 text-[13px]" onClick={onOpenAi}>
+            <Sparkles size={14} />
+            AI 助手
+          </button>
           <button className="ios-secondary-btn px-4 py-2 text-[13px]" onClick={() => void onRefresh?.()}>
             刷新
           </button>

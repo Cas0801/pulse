@@ -18,10 +18,14 @@ import AuthView from './components/AuthView';
 import StateCard from './components/StateCard';
 import AppShellSkeleton from './components/AppShellSkeleton';
 import { PRIMARY_NAV_ITEMS } from './lib/navigation';
+import AiAssistantView from './components/AiAssistantView';
+import { sendAiChat } from './lib/api';
+import type { AiChatRequest } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [showCreate, setShowCreate] = useState(false);
+  const [showAi, setShowAi] = useState(false);
   const {
     session,
     isAuthenticated,
@@ -84,6 +88,10 @@ export default function App() {
 
   async function handleCreatePost(input: Parameters<typeof createPost>[0]) {
     await createPost(input);
+  }
+
+  function requestAi(input: Omit<AiChatRequest, 'conversationId'>) {
+    return sendAiChat(input, session?.access_token);
   }
 
   if (isAuthLoading) {
@@ -267,6 +275,7 @@ export default function App() {
                   isLoading={isNotificationsLoading}
                   onRefresh={reloadNotifications}
                   onMarkAllRead={markNotificationsRead}
+                  onOpenAi={() => setShowAi(true)}
                 />
               </motion.div>
             )}
@@ -289,9 +298,18 @@ export default function App() {
                   isSubmitting={isSubmitting}
                   onSubmit={handleCreatePost}
                   onTabChange={handleTabChange}
+                  onAiOptimize={(content) => requestAi({ message: content, mode: 'improve-post' })}
                 />
               </motion.div>
             )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showAi ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70]">
+                <AiAssistantView accessToken={session?.access_token} onClose={() => setShowAi(false)} />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
 

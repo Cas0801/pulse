@@ -3,6 +3,7 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { getConfig, hasSupabaseConfig } from '../api/_lib/config';
 import { createComment, createPost, loadComments, loadFeed, loadNotifications, markNotificationsRead, setPostBookmark, setPostLike, setProfileFollow, uploadImageAsset } from '../api/_lib/supabase';
+import { handleAiChatRequest } from '../api/ai/chat';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -23,6 +24,10 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '15mb' }));
+
+app.post('/api/ai/chat', (req: Request, res: Response) => {
+  void handleAiChatRequest(req, res);
+});
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({

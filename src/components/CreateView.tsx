@@ -12,8 +12,9 @@ import {
   Trash2,
   ArrowLeft,
   ArrowRight,
+  WandSparkles,
 } from 'lucide-react';
-import type { CreatePostInput, PendingUploadImage, PostVisibility, User } from '../types';
+import type { AiChatResponse, CreatePostInput, PendingUploadImage, PostVisibility, User } from '../types';
 import StateCard from './StateCard';
 import BottomNav from './BottomNav';
 
@@ -23,6 +24,7 @@ interface CreateViewProps {
   isSubmitting: boolean;
   onSubmit: (input: CreatePostInput) => Promise<void>;
   onTabChange: (tab: string) => void;
+  onAiOptimize?: (content: string) => Promise<AiChatResponse>;
 }
 
 const CATEGORY_OPTIONS = ['摄影', '设计', '旅行', '灵感'];
@@ -71,7 +73,7 @@ function fileToPendingImage(file: File): Promise<PendingUploadImage> {
   });
 }
 
-export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabChange }: CreateViewProps) {
+export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabChange, onAiOptimize }: CreateViewProps) {
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
   const [location, setLocation] = useState('');
@@ -81,6 +83,7 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
   const [notice, setNotice] = useState<string | null>(null);
   const [localImages, setLocalImages] = useState<PendingUploadImage[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isAiOptimizing, setIsAiOptimizing] = useState(false);
 
   const mediaCount = localImages.length + (image.trim() ? 1 : 0);
   const resolvedType = useMemo(() => {
@@ -159,6 +162,23 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
       }),
     );
     setNotice('草稿已保存到本地浏览器');
+  }
+
+  async function handleAiOptimize() {
+    if (!onAiOptimize || content.trim().length < 3 || isAiOptimizing) {
+      return;
+    }
+
+    setIsAiOptimizing(true);
+    try {
+      const response = await onAiOptimize(content.trim());
+      setContent(response.message.content);
+      setNotice('AI 已生成润色建议，请确认后再发布');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'AI 优化失败，请稍后重试');
+    } finally {
+      setIsAiOptimizing(false);
+    }
   }
 
   function handleAttachCategoryTag() {
@@ -292,7 +312,19 @@ export default function CreateView({ onClose, me, isSubmitting, onSubmit, onTabC
                   <div className="mt-5">
                     <div className="mb-3 flex items-center justify-between">
                       <span className="section-label">内容</span>
-                      <span className="text-[12px] text-ink/42">{content.trim().length} 字</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[12px] text-ink/42">{content.trim().length} 字</span>
+                        {onAiOptimize ? (
+                          <button
+                            className="inline-flex items-center gap-1 rounded-full bg-[#eaf2ff] px-3 py-1.5 text-[12px] font-semibold text-accent disabled:opacity-50"
+                            disabled={isAiOptimizing || content.trim().length < 3}
+                            onClick={() => void handleAiOptimize()}
+                          >
+                            <WandSparkles size={13} />
+                            {isAiOptimizing ? '优化中...' : 'AI 润色'}
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                     <textarea
                       className="min-h-[220px] w-full resize-none rounded-[24px] border border-line/70 bg-[#fbfdff] px-4 py-4 text-[15px] leading-7 text-ink outline-none placeholder:text-ink/28"

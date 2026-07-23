@@ -11,6 +11,8 @@ import type {
   PostLikeResult,
   UploadedImageAsset,
   UploadImagePayload,
+  AiChatRequest,
+  AiChatResponse,
 } from '../types';
 import { Capacitor } from '@capacitor/core';
 
@@ -138,6 +140,14 @@ export function fetchNotifications(accessToken?: string | null) {
 export function markAllNotificationsRead(accessToken?: string | null) {
   return request<{ unreadCount: number }>('/api/notifications/read-all', {
     method: 'POST',
+    accessToken,
+  });
+}
+
+export function sendAiChat(input: AiChatRequest, accessToken?: string | null) {
+  return request<AiChatResponse>('/api/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify(input),
     accessToken,
   });
 }
